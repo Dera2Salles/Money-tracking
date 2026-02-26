@@ -92,7 +92,7 @@ export function useAccounts() {
           [id, name, type, initialBalance, icon, now, now]
         );
 
-        await fetchAccounts();
+        fetchAccounts();
         return { success: true, id, limitReached: false };
       } catch (error) {
         console.error('Error creating account:', error);
@@ -136,19 +136,21 @@ export function useAccounts() {
         const expenseId = generateId();
         const incomeId = generateId();
 
-        await db.runAsync(
-          `INSERT INTO transactions (id, type, amount, category_id, account_id, transfer_id, note, created_at, updated_at, sync_status)
-           VALUES (?, 'expense', ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-          [expenseId, amount, SYSTEM_CATEGORY_TRANSFER_ID, fromAccountId, transferId, note || 'Transfert', now, now]
-        );
+        await db.withTransactionAsync(async () => {
+          await db.runAsync(
+            `INSERT INTO transactions (id, type, amount, category_id, account_id, transfer_id, note, created_at, updated_at, sync_status)
+             VALUES (?, 'expense', ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+            [expenseId, amount, SYSTEM_CATEGORY_TRANSFER_ID, fromAccountId, transferId, note || 'Transfert', now, now]
+          );
 
-        await db.runAsync(
-          `INSERT INTO transactions (id, type, amount, category_id, account_id, transfer_id, note, created_at, updated_at, sync_status)
-           VALUES (?, 'income', ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-          [incomeId, amount, SYSTEM_CATEGORY_TRANSFER_ID, toAccountId, transferId, note || 'Transfert', now, now]
-        );
+          await db.runAsync(
+            `INSERT INTO transactions (id, type, amount, category_id, account_id, transfer_id, note, created_at, updated_at, sync_status)
+             VALUES (?, 'income', ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+            [incomeId, amount, SYSTEM_CATEGORY_TRANSFER_ID, toAccountId, transferId, note || 'Transfert', now, now]
+          );
+        });
 
-        await fetchAccounts();
+        fetchAccounts();
         return { success: true, transferId };
       } catch (error) {
         console.error('Error creating transfer:', error);
@@ -162,14 +164,15 @@ export function useAccounts() {
     async (id: string): Promise<boolean> => {
       try {
         const now = new Date().toISOString();
+        setAccounts((prev) => prev.filter((a) => a.id !== id));
         await db.runAsync(
           'UPDATE accounts SET deleted_at = ?, updated_at = ? WHERE id = ? AND is_default = 0',
           [now, now, id]
         );
-        await fetchAccounts();
         return true;
       } catch (error) {
         console.error('Error deleting account:', error);
+        fetchAccounts();
         return false;
       }
     },
@@ -185,44 +188,22 @@ export function useAccounts() {
       try {
         const now = new Date().toISOString();
 
-        // Convert initial_balance in accounts
-        const accountsToConvert = await db.getAllAsync<{ id: string; initial_balance: number }>(
-          'SELECT id, initial_balance FROM accounts WHERE deleted_at IS NULL'
-        );
-
-        for (const account of accountsToConvert) {
-          const newBalance = Math.round(account.initial_balance * rate);
+        await db.withTransactionAsync(async () => {
           await db.runAsync(
-            'UPDATE accounts SET initial_balance = ?, updated_at = ? WHERE id = ?',
-            [newBalance, now, account.id]
+            'UPDATE accounts SET initial_balance = ROUND(initial_balance * ?), updated_at = ? WHERE deleted_at IS NULL',
+            [rate, now]
           );
-        }
 
-        // Convert amount in all transactions
-        const transactionsToConvert = await db.getAllAsync<{ id: string; amount: number }>(
-          'SELECT id, amount FROM transactions WHERE deleted_at IS NULL'
-        );
-
-        for (const transaction of transactionsToConvert) {
-          const newAmount = Math.round(transaction.amount * rate);
           await db.runAsync(
-            'UPDATE transactions SET amount = ?, updated_at = ? WHERE id = ?',
-            [newAmount, now, transaction.id]
+            'UPDATE transactions SET amount = ROUND(amount * ?), updated_at = ? WHERE deleted_at IS NULL',
+            [rate, now]
           );
-        }
 
-        // Convert amount in planification_items
-        const planificationItemsToConvert = await db.getAllAsync<{ id: string; amount: number }>(
-          'SELECT id, amount FROM planification_items'
-        );
-
-        for (const item of planificationItemsToConvert) {
-          const newAmount = Math.round(item.amount * rate);
           await db.runAsync(
-            'UPDATE planification_items SET amount = ? WHERE id = ?',
-            [newAmount, item.id]
+            'UPDATE planification_items SET amount = ROUND(amount * ?)',
+            [rate]
           );
-        }
+        });
 
         await fetchAccounts();
         return true;

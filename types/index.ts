@@ -26,6 +26,7 @@ export interface Transaction {
   category_id: string | null;
   account_id: string | null;
   transfer_id: string | null;
+  planification_id: string | null;
   note: string | null;
   created_at: string;
   updated_at: string;

@@ -17,7 +17,7 @@ import {
   SYSTEM_CATEGORY_INCOME_ID,
 } from './schema';
 
-const DATABASE_VERSION = 13;
+const DATABASE_VERSION = 15;
 
 interface VersionResult {
   user_version: number;
@@ -92,6 +92,16 @@ export async function migrateDatabase(db: SQLiteDatabase): Promise<void> {
   if (currentVersion < 13) {
     await migrateToV13(db);
     currentVersion = 13;
+  }
+
+  if (currentVersion < 14) {
+    await migrateToV14(db);
+    currentVersion = 14;
+  }
+
+  if (currentVersion < 15) {
+    await migrateToV15(db);
+    currentVersion = 15;
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
@@ -300,4 +310,28 @@ async function migrateToV13(db: SQLiteDatabase): Promise<void> {
   if (!hasType) {
     await db.execAsync(ADD_TYPE_TO_PLANIFICATION_ITEMS);
   }
+}
+
+async function migrateToV14(db: SQLiteDatabase): Promise<void> {
+  // Add index on transfer_id for faster transaction self-join queries
+  await db.execAsync(
+    'CREATE INDEX IF NOT EXISTS idx_transactions_transfer_id ON transactions(transfer_id)'
+  );
+}
+
+async function migrateToV15(db: SQLiteDatabase): Promise<void> {
+  // Add planification_id to transactions to link them back to their source planification
+  const tableInfo = await db.getAllAsync<{ name: string }>(
+    "PRAGMA table_info(transactions)"
+  );
+  const hasPlanificationId = tableInfo.some((col) => col.name === 'planification_id');
+
+  if (!hasPlanificationId) {
+    await db.execAsync(
+      'ALTER TABLE transactions ADD COLUMN planification_id TEXT REFERENCES planifications(id)'
+    );
+  }
+  await db.execAsync(
+    'CREATE INDEX IF NOT EXISTS idx_transactions_planification_id ON transactions(planification_id)'
+  );
 }

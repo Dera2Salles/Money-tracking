@@ -15,9 +15,10 @@ const DEFAULT_CATEGORY_IDS = DEFAULT_CATEGORIES.map((c) => c.id);
 interface TransactionCardProps {
   transaction: TransactionWithCategory;
   onPress?: () => void;
+  onLongPress?: () => void;
 }
 
-export function TransactionCard({ transaction, onPress }: TransactionCardProps) {
+export function TransactionCard({ transaction, onPress, onLongPress }: TransactionCardProps) {
   const currencyCode = useCurrencyCode();
   const { t, i18n } = useTranslation();
   const isExpense = transaction.type === 'expense';
@@ -67,7 +68,7 @@ export function TransactionCard({ transaction, onPress }: TransactionCardProps) 
   };
 
   return (
-    <Pressable onPress={onPress}>
+    <Pressable onPress={onPress} onLongPress={onLongPress}>
       <HStack
         className="bg-background-0 p-4 rounded-xl border border-outline-100"
         space="md"
@@ -109,13 +110,20 @@ export function TransactionCard({ transaction, onPress }: TransactionCardProps) 
           </Text>
         </VStack>
 
-        <Text
-          className={`font-bold text-lg ${
-            isTransfer ? 'text-primary-600' : isExpense ? 'text-error-600' : 'text-success-600'
-          }`}
-        >
-          {isTransfer ? '' : sign}{formattedAmount}
-        </Text>
+        <VStack className="items-end justify-between">
+          <Text
+            className={`font-bold text-lg ${
+              isTransfer ? 'text-primary-600' : isExpense ? 'text-error-600' : 'text-success-600'
+            }`}
+          >
+            {isTransfer ? '' : sign}{formattedAmount}
+          </Text>
+          {onLongPress && (
+            <Pressable onPress={onLongPress} hitSlop={8}>
+              <Ionicons name="trash-outline" size={16} color="#DC2626" />
+            </Pressable>
+          )}
+        </VStack>
       </HStack>
     </Pressable>
   );

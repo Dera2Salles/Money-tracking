@@ -18,6 +18,7 @@ export interface TransactionWithCategory extends Transaction {
   account_type: string | null;
   account_icon: string | null;
   linked_account_name: string | null;
+  planification_title: string | null;
 }
 
 function generateId(): string {
@@ -42,12 +43,14 @@ export function useTransactions() {
         `SELECT t.*,
           c.name as category_name, c.icon as category_icon, c.color as category_color,
           a.name as account_name, a.type as account_type, a.icon as account_icon,
-          la.name as linked_account_name
+          la.name as linked_account_name,
+          p.title as planification_title
          FROM transactions t
          LEFT JOIN categories c ON t.category_id = c.id
          LEFT JOIN accounts a ON t.account_id = a.id
          LEFT JOIN transactions lt ON lt.transfer_id = t.transfer_id AND lt.id != t.id AND lt.deleted_at IS NULL
          LEFT JOIN accounts la ON la.id = lt.account_id
+         LEFT JOIN planifications p ON t.planification_id = p.id
          WHERE t.deleted_at IS NULL
            AND NOT (t.transfer_id IS NOT NULL AND t.type = 'income')
          ORDER BY t.created_at DESC`
@@ -107,7 +110,7 @@ export function useTransactions() {
           [id, type, amount, categoryId, accountId, note, now, now]
         );
 
-        await fetchTransactions();
+        fetchTransactions();
         return { success: true, id };
       } catch (err) {
         console.error('Error creating transaction:', err);
@@ -124,18 +127,35 @@ export function useTransactions() {
     async (id: string) => {
       try {
         const now = new Date().toISOString();
+        const tx = transactions.find((t) => t.id === id);
+        setTransactions((prev) => prev.filter((t) => t.id !== id));
         await db.runAsync(
           'UPDATE transactions SET deleted_at = ?, updated_at = ? WHERE id = ?',
           [now, now, id]
         );
-        await fetchTransactions();
+
+        // Auto-delete planification if no linked transactions remain
+        if (tx?.planification_id) {
+          const remaining = await db.getFirstAsync<{ count: number }>(
+            'SELECT COUNT(*) as count FROM transactions WHERE planification_id = ? AND deleted_at IS NULL',
+            [tx.planification_id]
+          );
+          if (remaining && remaining.count === 0) {
+            await db.runAsync(
+              'UPDATE planifications SET deleted_at = ?, updated_at = ? WHERE id = ?',
+              [now, now, tx.planification_id]
+            );
+          }
+        }
+
         return true;
       } catch (err) {
         console.error('Error deleting transaction:', err);
+        fetchTransactions();
         return false;
       }
     },
-    [db, fetchTransactions]
+    [db, transactions, fetchTransactions]
   );
 
   return {

@@ -62,7 +62,8 @@
     "addFirst": "Ajoutez votre première dépense ou revenu",
     "deleteConfirm": "Supprimer cette transaction ?",
     "deleteSuccess": "Transaction supprimée",
-    "loadMore": "Afficher plus"
+    "loadMore": "Afficher plus",
+    "deleteMessage": "Cette transaction sera supprimée. Appui long pour supprimer."
   },
   "settings": {
     "title": "Paramètres",
@@ -90,6 +91,7 @@
     "feedback": "Retour d'expérience",
     "reportProblem": "Signaler un problème",
     "about": "À propos",
+    "whatsNew": "Nouveautés",
     "version": "Version",
     "reviewTutorial": "Revoir le tutoriel",
     "developer": "Développeur",
@@ -98,7 +100,12 @@
     "accounts": "Mes comptes",
     "categories": "Catégories",
     "customCategories": "Catégories personnalisées",
-    "showTips": "Afficher les astuces"
+    "showTips": "Afficher les astuces",
+    "dangerZone": "Zone de danger",
+    "resetApp": "Réinitialiser l'application",
+    "resetConfirm": "Réinitialiser l'application ?",
+    "resetMessage": "Toutes vos données seront supprimées définitivement : transactions, comptes, catégories et paramètres. Cette action est irréversible.",
+    "reset": "Réinitialiser"
   },
   "account": {
     "new": "Nouveau compte",
@@ -177,7 +184,11 @@
     "insufficientBalance": "Solde insuffisant",
     "validating": "Validation...",
     "itemCount": "{{count}} élément",
-    "itemCount_plural": "{{count}} éléments"
+    "itemCount_plural": "{{count}} éléments",
+    "transactionCount": "{{count}} transaction(s)",
+    "deleteTransactionConfirm": "Supprimer cette transaction ?",
+    "deleteTransactionMessage": "Cette transaction sera supprimée de la planification.",
+    "linkedTransactions": "Transactions liées"
   },
   "onboarding": {
     "appName": "Mitsitsy",
@@ -317,5 +328,26 @@
     "successMessage": "Merci pour votre feedback !",
     "errorMessage": "Erreur lors de l'envoi",
     "requiresInternet": "Connexion internet requise"
+  },
+  "changelog": {
+    "current": "Actuel",
+    "factoryReset": "Vous pouvez maintenant remettre l'app à zéro depuis les paramètres",
+    "deleteTransactions": "Vous pouvez supprimer une transaction en appuyant sur la corbeille",
+    "whatsNewPage": "Découvrez les nouveautés à chaque mise à jour",
+    "performanceOptimizations": "L'application est plus rapide et plus fluide",
+    "instantDeleteUpdate": "Les suppressions s'affichent immédiatement",
+    "balanceRefreshAfterDelete": "Vos soldes se mettent à jour automatiquement",
+    "malagasyLanguage": "L'application est maintenant disponible en malgache",
+    "darkMode": "Mode sombre pour une utilisation confortable la nuit",
+    "feedbackModal": "Partagez vos idées et suggestions directement dans l'app",
+    "multiLanguage": "Choisissez entre le français et l'anglais",
+    "currencyConversion": "Changez de devise facilement avec les taux du jour",
+    "multipleAccounts": "Gérez plusieurs comptes : banque, espèce et plus",
+    "transferBetweenAccounts": "Transférez de l'argent entre vos comptes en un clic",
+    "planificationSystem": "Planifiez vos dépenses à l'avance",
+    "planificationGrouping": "Les transactions d'une planification sont regroupées dans un seul card",
+    "autoDeleteEmptyPlanification": "Suppression automatique d'une planification si toutes ses transactions sont supprimées",
+    "deleteCustomCategory": "Correction de la suppression des catégories personnalisées",
+    "deleteModalNames": "Les noms s'affichent correctement dans les modals de suppression"
   }
 }

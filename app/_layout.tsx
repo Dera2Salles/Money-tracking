@@ -39,6 +39,7 @@ function AppContent() {
         <Stack.Screen name="tutorial" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="planification/[id]" />
+        <Stack.Screen name="whats-new" />
       </Stack>
     </>
   );

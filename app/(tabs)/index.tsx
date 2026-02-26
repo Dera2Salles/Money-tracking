@@ -10,31 +10,68 @@ import { HStack } from '@/components/ui/hstack';
 import { Heading } from '@/components/ui/heading';
 import { Text } from '@/components/ui/text';
 import { Center } from '@/components/ui/center';
-import { useAccounts, useTransactions, useSettings, useExpensesByCategory, useTips } from '@/hooks';
+import { useAccounts, useTransactions, useSettings, useExpensesByCategory, useTips, useWhatsNew } from '@/hooks';
 import { TransactionCard } from '@/components/TransactionCard';
+import { PlanificationTransactionGroup } from '@/components/PlanificationTransactionGroup';
 import { ExpenseChart } from '@/components/ExpenseChart';
 import { AddAccountModal } from '@/components/AddAccountModal';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useTheme } from '@/contexts';
+import type { TransactionWithCategory } from '@/hooks/useTransactions';
+import type { PlanificationGroupData } from '@/components/PlanificationTransactionGroup';
 
 export default function DashboardScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const { accounts, formattedTotal, refresh: refreshAccounts, isLoading: accountsLoading, formatMoney, createAccount, canCreateAccount, customAccountsCount, maxCustomAccounts } = useAccounts();
-  const { transactions, refresh: refreshTransactions, isFetching } = useTransactions();
+  const { transactions, refresh: refreshTransactions, isFetching, deleteTransaction } = useTransactions();
   const { balanceHidden, toggleBalanceVisibility } = useSettings();
   const { expenses, refresh: refreshExpenses } = useExpensesByCategory();
   const { currentTip, showTip } = useTips('dashboard');
+  const { hasNew, checkNew } = useWhatsNew();
   const [showAddAccount, setShowAddAccount] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<TransactionWithCategory | null>(null);
 
-  const recentTransactions = useMemo(() => transactions.slice(0, 5), [transactions]);
+  const recentItems = useMemo(() => {
+    const recent = transactions.slice(0, 5);
+    const items: ({ _type: 'single'; transaction: TransactionWithCategory } | { _type: 'group'; group: PlanificationGroupData })[] = [];
+    const planifGroups: Record<string, TransactionWithCategory[]> = {};
+
+    recent.forEach((tx) => {
+      if (tx.planification_id && tx.planification_title) {
+        if (!planifGroups[tx.planification_id]) planifGroups[tx.planification_id] = [];
+        planifGroups[tx.planification_id].push(tx);
+      } else {
+        items.push({ _type: 'single', transaction: tx });
+      }
+    });
+
+    Object.entries(planifGroups).forEach(([planifId, groupTxs]) => {
+      const firstTxIndex = recent.indexOf(groupTxs[0]);
+      const insertIndex = items.filter(
+        (item) => item._type === 'single' && recent.indexOf(item.transaction) < firstTxIndex
+      ).length;
+      items.splice(insertIndex, 0, {
+        _type: 'group',
+        group: {
+          planification_id: planifId,
+          planification_title: groupTxs[0].planification_title!,
+          transactions: groupTxs,
+        },
+      });
+    });
+
+    return items;
+  }, [transactions]);
 
   useFocusEffect(
     useCallback(() => {
       refreshAccounts();
       refreshTransactions();
       refreshExpenses();
-    }, [refreshAccounts, refreshTransactions, refreshExpenses])
+      checkNew();
+    }, [refreshAccounts, refreshTransactions, refreshExpenses, checkNew])
   );
 
   const handleRefresh = async () => {
@@ -66,7 +103,17 @@ export default function DashboardScreen() {
         refreshControl={<RefreshControl refreshing={isFetching || accountsLoading} onRefresh={handleRefresh} />}
       >
         <VStack className="p-6" space="lg">
-          <Heading size="xl" className="text-typography-900">{t('dashboard.title')}</Heading>
+          <HStack className="justify-between items-center">
+            <Heading size="xl" className="text-typography-900">{t('dashboard.title')}</Heading>
+            <Pressable onPress={() => router.push('/whats-new')} hitSlop={8} className="p-2">
+              <View>
+                <Ionicons name="notifications-outline" size={24} color={theme.colors.primary} />
+                {hasNew && (
+                  <View style={{ position: 'absolute', top: -2, right: -2, width: 10, height: 10, borderRadius: 5, backgroundColor: '#EF4444' }} />
+                )}
+              </View>
+            </Pressable>
+          </HStack>
 
           <VStack>
             <Box className="p-6 rounded-2xl" style={{ backgroundColor: theme.colors.primary }}>
@@ -126,16 +173,28 @@ export default function DashboardScreen() {
 
           <VStack space="md">
             <Text className="text-typography-700 font-semibold">{t('dashboard.recentTransactions')}</Text>
-            {recentTransactions.length === 0 ? (
+            {recentItems.length === 0 ? (
               <Center className="py-8 bg-background-0 rounded-xl border border-outline-100">
                 <Text className="text-4xl mb-2">📭</Text>
                 <Text className="text-typography-500 text-center text-sm">{t('dashboard.noTransactions')}</Text>
               </Center>
             ) : (
               <VStack space="sm">
-                {recentTransactions.map((transaction) => (
-                  <TransactionCard key={transaction.id} transaction={transaction} />
-                ))}
+                {recentItems.map((item) =>
+                  item._type === 'group' ? (
+                    <PlanificationTransactionGroup
+                      key={`group-${item.group.planification_id}`}
+                      group={item.group}
+                      onLongPress={() => setDeleteTarget(item.group.transactions[0])}
+                    />
+                  ) : (
+                    <TransactionCard
+                      key={item.transaction.id}
+                      transaction={item.transaction}
+                      onLongPress={() => setDeleteTarget(item.transaction)}
+                    />
+                  )
+                )}
                 {transactions.length > 5 && (
                   <Pressable onPress={() => router.push('/history')} className="py-3 px-4 rounded-xl" style={{ backgroundColor: theme.colors.secondary }}>
                     <HStack className="justify-center items-center" space="sm">
@@ -149,6 +208,23 @@ export default function DashboardScreen() {
           </VStack>
         </VStack>
       </ScrollView>
+
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        title={t('history.deleteConfirm')}
+        message={t('history.deleteMessage')}
+        confirmText={t('common.delete')}
+        isDestructive
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) {
+            deleteTransaction(deleteTarget.id);
+            refreshAccounts();
+            refreshExpenses();
+          }
+          setDeleteTarget(null);
+        }}
+      />
 
       <AddAccountModal
         isOpen={showAddAccount}

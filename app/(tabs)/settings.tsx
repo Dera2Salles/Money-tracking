@@ -1,12 +1,15 @@
 import { useCallback, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Heading } from '@/components/ui/heading';
 import { getCurrencyByCode } from '@/constants/currencies';
 import { useTheme } from '@/contexts';
 import { useSettings, useAccounts, useCategories } from '@/hooks';
+import { useSQLiteContext } from '@/lib/database';
+import { migrateDatabase } from '@/lib/database/migrations';
+import { cancelAllReminders } from '@/lib/notifications';
 import { AddCategoryModal } from '@/components/AddCategoryModal';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { CurrencyConversionDialog } from '@/components/CurrencyConversionDialog';
@@ -19,14 +22,16 @@ import {
   PrivacySection,
   FeedbackSection,
   AboutSection,
+  DangerZoneSection,
 } from '@/components/settings';
 import { fetchExchangeRate } from '@/lib/exchangeRate';
 import { checkInternetConnection } from '@/lib/network';
-import type { Category, AccountWithBalance } from '@/types';
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const router = useRouter();
+  const db = useSQLiteContext();
   const { themeId, setTheme } = useTheme();
   const {
     balanceHidden,
@@ -52,8 +57,12 @@ export default function SettingsScreen() {
   } = useCategories();
 
   const [showAddCategory, setShowAddCategory] = useState(false);
-  const [deleteCategoryTarget, setDeleteCategoryTarget] = useState<Category | null>(null);
-  const [deleteAccountTarget, setDeleteAccountTarget] = useState<AccountWithBalance | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{
+    title: string;
+    message: string;
+    confirmText: string;
+    onConfirm: () => void;
+  } | null>(null);
   const [pendingCurrencyCode, setPendingCurrencyCode] = useState<string | null>(null);
   const [isConverting, setIsConverting] = useState(false);
   const [isFetchingRate, setIsFetchingRate] = useState(false);
@@ -116,6 +125,29 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleResetApp = async () => {
+    try {
+      await db.execAsync(`
+        PRAGMA foreign_keys = OFF;
+        DROP TABLE IF EXISTS planification_items;
+        DROP TABLE IF EXISTS planifications;
+        DROP TABLE IF EXISTS transactions;
+        DROP TABLE IF EXISTS accounts;
+        DROP TABLE IF EXISTS categories;
+        DROP TABLE IF EXISTS settings;
+        DROP TABLE IF EXISTS sync_meta;
+        PRAGMA foreign_keys = ON;
+        PRAGMA user_version = 0;
+      `);
+      await migrateDatabase(db);
+      await cancelAllReminders();
+      setConfirmAction(null);
+      router.replace('/onboarding');
+    } catch (err) {
+      console.error('Error resetting app:', err);
+    }
+  };
+
   return (
     <View className="flex-1 bg-background-50" style={{ paddingTop: insets.top }}>
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 32 }}>
@@ -126,7 +158,12 @@ export default function SettingsScreen() {
         <AccountsSection
           accounts={accounts}
           formatMoney={formatMoney}
-          onDelete={setDeleteAccountTarget}
+          onDelete={(account) => setConfirmAction({
+            title: t('account.deleteConfirm', { name: account.name }),
+            message: t('account.deleteWarning'),
+            confirmText: t('common.delete'),
+            onConfirm: () => { deleteAccount(account.id); setConfirmAction(null); },
+          })}
         />
 
         <CategoriesSection
@@ -134,7 +171,12 @@ export default function SettingsScreen() {
           customCount={customCategoriesCount}
           maxCustom={maxCustomCategories}
           onAdd={() => setShowAddCategory(true)}
-          onDelete={setDeleteCategoryTarget}
+          onDelete={(category) => setConfirmAction({
+            title: t('category.deleteConfirm', { name: category.name }),
+            message: t('category.deleteConfirm', { name: category.name }),
+            confirmText: t('common.delete'),
+            onConfirm: () => { deleteCategory(category.id); setConfirmAction(null); },
+          })}
         />
 
         <AppearanceSection
@@ -163,6 +205,13 @@ export default function SettingsScreen() {
         <FeedbackSection />
 
         <AboutSection />
+
+        <DangerZoneSection onReset={() => setConfirmAction({
+          title: t('settings.resetConfirm'),
+          message: t('settings.resetMessage'),
+          confirmText: t('settings.reset'),
+          onConfirm: handleResetApp,
+        })} />
       </ScrollView>
 
       <AddCategoryModal
@@ -175,29 +224,13 @@ export default function SettingsScreen() {
       />
 
       <ConfirmDialog
-        isOpen={!!deleteCategoryTarget}
-        title={t('category.deleteConfirm')}
-        message={t('common.deleteItem', { name: deleteCategoryTarget?.name })}
-        confirmText={t('common.delete')}
+        isOpen={!!confirmAction}
+        title={confirmAction?.title || ''}
+        message={confirmAction?.message || ''}
+        confirmText={confirmAction?.confirmText || ''}
         isDestructive
-        onClose={() => setDeleteCategoryTarget(null)}
-        onConfirm={async () => {
-          if (deleteCategoryTarget) await deleteCategory(deleteCategoryTarget.id);
-          setDeleteCategoryTarget(null);
-        }}
-      />
-
-      <ConfirmDialog
-        isOpen={!!deleteAccountTarget}
-        title={t('account.deleteConfirm')}
-        message={t('common.deleteItem', { name: deleteAccountTarget?.name })}
-        confirmText={t('common.delete')}
-        isDestructive
-        onClose={() => setDeleteAccountTarget(null)}
-        onConfirm={async () => {
-          if (deleteAccountTarget) await deleteAccount(deleteAccountTarget.id);
-          setDeleteAccountTarget(null);
-        }}
+        onClose={() => setConfirmAction(null)}
+        onConfirm={() => confirmAction?.onConfirm()}
       />
 
       <CurrencyConversionDialog

@@ -62,7 +62,8 @@
     "addFirst": "Add your first expense or income",
     "deleteConfirm": "Delete this transaction?",
     "deleteSuccess": "Transaction deleted",
-    "loadMore": "Load more"
+    "loadMore": "Load more",
+    "deleteMessage": "This transaction will be deleted. Long press to delete."
   },
   "settings": {
     "title": "Settings",
@@ -90,6 +91,7 @@
     "feedback": "Feedback",
     "reportProblem": "Report a problem",
     "about": "About",
+    "whatsNew": "What's New",
     "version": "Version",
     "reviewTutorial": "Review tutorial",
     "developer": "Developer",
@@ -98,7 +100,12 @@
     "accounts": "My accounts",
     "categories": "Categories",
     "customCategories": "Custom categories",
-    "showTips": "Show tips"
+    "showTips": "Show tips",
+    "dangerZone": "Danger Zone",
+    "resetApp": "Reset Application",
+    "resetConfirm": "Reset Application?",
+    "resetMessage": "All your data will be permanently deleted: transactions, accounts, categories, and settings. This action cannot be undone.",
+    "reset": "Reset"
   },
   "account": {
     "new": "New Account",
@@ -177,7 +184,11 @@
     "insufficientBalance": "Insufficient balance",
     "validating": "Validating...",
     "itemCount": "{{count}} item",
-    "itemCount_plural": "{{count}} items"
+    "itemCount_plural": "{{count}} items",
+    "transactionCount": "{{count}} transaction(s)",
+    "deleteTransactionConfirm": "Delete this transaction?",
+    "deleteTransactionMessage": "This transaction will be removed from the planification.",
+    "linkedTransactions": "Linked transactions"
   },
   "onboarding": {
     "appName": "Mitsitsy",
@@ -317,5 +328,26 @@
     "successMessage": "Thank you for your feedback!",
     "errorMessage": "Error sending feedback",
     "requiresInternet": "Internet connection required"
+  },
+  "changelog": {
+    "current": "Current",
+    "factoryReset": "You can now reset the app to factory state from settings",
+    "deleteTransactions": "Delete a transaction by tapping the trash icon",
+    "whatsNewPage": "See what's new with every update",
+    "performanceOptimizations": "The app is faster and smoother",
+    "instantDeleteUpdate": "Deletions show up right away",
+    "balanceRefreshAfterDelete": "Your balances update automatically",
+    "malagasyLanguage": "The app is now available in Malagasy",
+    "darkMode": "Dark mode for comfortable use at night",
+    "feedbackModal": "Share your ideas and suggestions directly in the app",
+    "multiLanguage": "Choose between French and English",
+    "currencyConversion": "Switch currencies easily with live exchange rates",
+    "multipleAccounts": "Manage multiple accounts: bank, cash and more",
+    "transferBetweenAccounts": "Transfer money between your accounts in one tap",
+    "planificationSystem": "Plan your expenses ahead of time",
+    "planificationGrouping": "Planification transactions are grouped into a single card",
+    "autoDeleteEmptyPlanification": "Planification is automatically deleted when all its transactions are removed",
+    "deleteCustomCategory": "Fixed custom category deletion",
+    "deleteModalNames": "Names now display correctly in delete confirmation modals"
   }
 }

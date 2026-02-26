@@ -51,7 +51,7 @@ export default function PlanificationDetailScreen() {
   const { accounts, refresh: refreshAccounts, formatMoney } = useAccounts();
   const { expenseCategories, incomeCategory, refresh: refreshCategories } = useCategories();
   const { validatePlanification, updateDeadline } = usePlanifications();
-  const { planification, items, total, addItem, removeItem, refresh: refreshDetail, isLoading, isFetching } = usePlanificationDetail(id || null);
+  const { planification, items, linkedTransactions, total, addItem, removeItem, deleteLinkedTransaction, refresh: refreshDetail, isLoading, isFetching } = usePlanificationDetail(id || null);
 
   const effectiveScheme = useEffectiveColorScheme();
   const isDark = effectiveScheme === 'dark';
@@ -81,6 +81,7 @@ export default function PlanificationDetailScreen() {
   const [note, setNote] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
+  const [deleteTransactionId, setDeleteTransactionId] = useState<string | null>(null);
   const [showValidateDialog, setShowValidateDialog] = useState(false);
 
   const handleDeadlineChange = async (_: unknown, selectedDate?: Date) => {
@@ -113,6 +114,19 @@ export default function PlanificationDetailScreen() {
     if (deleteItemId) {
       await removeItem(deleteItemId);
       setDeleteItemId(null);
+    }
+  };
+
+  const handleDeleteTransactionConfirm = async () => {
+    if (deleteTransactionId) {
+      const result = await deleteLinkedTransaction(deleteTransactionId);
+      setDeleteTransactionId(null);
+      if (result === 'deleted_planification') {
+        router.replace('/(tabs)/simulation');
+        return;
+      }
+      await refreshBalance();
+      await refreshAccounts();
     }
   };
 
@@ -331,7 +345,37 @@ export default function PlanificationDetailScreen() {
               </VStack>
             )}
 
-            {items.length > 0 && (
+            {!isPending && linkedTransactions.length > 0 && (
+              <VStack space="md">
+                <Text className="text-typography-700 font-semibold text-lg">{t('planification.linkedTransactions')} ({linkedTransactions.length})</Text>
+                {linkedTransactions.map((tx) => {
+                  const isIncome = tx.type === 'income';
+                  return (
+                    <HStack key={tx.id} className="bg-background-50 p-3 rounded-xl items-center justify-between">
+                      <HStack space="md" className="items-center flex-1">
+                        <Box className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: tx.category_color || '#94A3B8' }}>
+                          {tx.category_icon && <Ionicons name={tx.category_icon as keyof typeof Ionicons.glyphMap} size={20} color="white" />}
+                        </Box>
+                        <VStack className="flex-1">
+                          <Text className="text-typography-900 font-medium">{getCategoryName(tx.category_id, tx.category_name)}</Text>
+                          {tx.note && <Text className="text-typography-500 text-xs" numberOfLines={1}>{tx.note}</Text>}
+                        </VStack>
+                      </HStack>
+                      <HStack space="md" className="items-center">
+                        <Text className="font-semibold" style={{ color: isIncome ? '#22C55E' : '#EF4444' }}>
+                          {isIncome ? '+' : '-'}{formatMoney(tx.amount)}
+                        </Text>
+                        <Pressable onPress={() => setDeleteTransactionId(tx.id)}>
+                          <Ionicons name="close-circle" size={24} color="#DC2626" />
+                        </Pressable>
+                      </HStack>
+                    </HStack>
+                  );
+                })}
+              </VStack>
+            )}
+
+            {isPending && items.length > 0 && (
               <VStack space="md">
                 <Text className="text-typography-700 font-semibold text-lg">{t('planification.elements', { count: items.length })}</Text>
                 {items.map((item) => {
@@ -351,7 +395,7 @@ export default function PlanificationDetailScreen() {
                         <Text className="font-semibold" style={{ color: isIncome ? '#22C55E' : '#EF4444' }}>
                           {isIncome ? '+' : '-'}{formatMoney(item.amount)}
                         </Text>
-                        {isPending && <Pressable onPress={() => setDeleteItemId(item.id)}><Ionicons name="close-circle" size={24} color="#DC2626" /></Pressable>}
+                        <Pressable onPress={() => setDeleteItemId(item.id)}><Ionicons name="close-circle" size={24} color="#DC2626" /></Pressable>
                       </HStack>
                     </HStack>
                   );
@@ -386,6 +430,8 @@ export default function PlanificationDetailScreen() {
       </KeyboardAwareScrollView>
 
       <ConfirmDialog isOpen={!!deleteItemId} title={t('common.delete')} message={t('planification.deleteItemConfirm')} confirmText={t('common.delete')} isDestructive onClose={() => setDeleteItemId(null)} onConfirm={handleDeleteConfirm} />
+
+      <ConfirmDialog isOpen={!!deleteTransactionId} title={t('planification.deleteTransactionConfirm')} message={t('planification.deleteTransactionMessage')} confirmText={t('common.delete')} isDestructive onClose={() => setDeleteTransactionId(null)} onConfirm={handleDeleteTransactionConfirm} />
 
       <ValidatePlanificationDialog
         isOpen={showValidateDialog}

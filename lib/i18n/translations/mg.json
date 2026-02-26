@@ -62,7 +62,8 @@
     "addFirst": "Ampidiro ny fandaniana na vola niditra voalohany",
     "deleteConfirm": "Hofafana ve ity tateram-bola ity?",
     "deleteSuccess": "Voafafa ny tateram-bola",
-    "loadMore": "Hijery hatrany"
+    "loadMore": "Hijery hatrany",
+    "deleteMessage": "Hofafana ity tateram-bola ity. Tsindrio ela mba hamafana."
   },
   "settings": {
     "title": "Firafitra",
@@ -90,6 +91,7 @@
     "feedback": "Hevitra",
     "reportProblem": "Hilaza olana",
     "about": "Mombamomba",
+    "whatsNew": "Vaovao",
     "version": "Dika",
     "reviewTutorial": "Hijery ny fomba fampiasana",
     "developer": "Mpamorona application",
@@ -98,7 +100,12 @@
     "accounts": "Kaonty",
     "categories": "Sokajiny",
     "customCategories": "Sokajy mitokana",
-    "showTips": "Haneho torohevitra"
+    "showTips": "Haneho torohevitra",
+    "dangerZone": "Faritra mampidi-doza",
+    "resetApp": "Hamerina ny application",
+    "resetConfirm": "Hamerina ny application?",
+    "resetMessage": "Hofafana tanteraka ny angon-drakitra rehetra: tateram-bola, kaonty, sokajiny ary firafitra. Tsy azo averina ity.",
+    "reset": "Hamerina"
   },
   "account": {
     "new": "Kaonty vaovao",
@@ -177,7 +184,11 @@
     "insufficientBalance": "Tsy ampy ny vola",
     "validating": "Manamarina...",
     "itemCount": "{{count}} zavatra",
-    "itemCount_plural": "{{count}} zavatra"
+    "itemCount_plural": "{{count}} zavatra",
+    "transactionCount": "{{count}} fifanakalozana",
+    "deleteTransactionConfirm": "Hamafa ity fifanakalozana ity?",
+    "deleteTransactionMessage": "Ity fifanakalozana ity dia hesorina amin'ny planifikasiona.",
+    "linkedTransactions": "Fifanakalozana mifandray"
   },
   "onboarding": {
     "appName": "Mitsitsy",
@@ -317,5 +328,26 @@
     "successMessage": "Misaotra anao tamin'ny hevitra!",
     "errorMessage": "Nisy olana tamin'ny fandefasana",
     "requiresInternet": "Mila fifandraisana internet"
+  },
+  "changelog": {
+    "current": "Ankehitriny",
+    "factoryReset": "Afaka averinao amin'ny voalohany ny application ao amin'ny paramètre",
+    "deleteTransactions": "Afaka mamafa transaction ianao amin'ny fitsindrana ny corbeille",
+    "whatsNewPage": "Jereo ny vaovao isaky ny mise à jour",
+    "performanceOptimizations": "Haingana sy malama kokoa ny application",
+    "instantDeleteUpdate": "Hita avy hatrany ny fanovana rehefa mamafa",
+    "balanceRefreshAfterDelete": "Miova ho azy ny vola anaty kaonty",
+    "malagasyLanguage": "Efa misy amin'ny teny malagasy ny application",
+    "darkMode": "Mode maizina ho amin'ny fampiasana amin'ny alina",
+    "feedbackModal": "Zarao ny hevitrao sy ny soso-kevitrao ao amin'ny application",
+    "multiLanguage": "Misafidiana eo amin'ny frantsay sy anglisy",
+    "currencyConversion": "Ovao mora ny vola amin'ny taux isan'andro",
+    "multipleAccounts": "Tantano ny kaonty maro: banky, vola madinika sy hafa",
+    "transferBetweenAccounts": "Amindrao ny vola eo amin'ny kaonty amin'ny tsindry iray",
+    "planificationSystem": "Kajio mialoha ny fandanianao",
+    "planificationGrouping": "Ny fifanakalozana avy amin'ny planifikasiona dia atambatra ao anaty karatra iray",
+    "autoDeleteEmptyPlanification": "Fafana ho azy ny planifikasiona raha voafafa daholo ny fifanakalozana rehetra",
+    "deleteCustomCategory": "Voalamina ny famafana ny sokajy manokana",
+    "deleteModalNames": "Miseho tsara ny anarana ao amin'ny modal famafana"
   }
 }

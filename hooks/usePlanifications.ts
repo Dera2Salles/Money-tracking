@@ -11,6 +11,7 @@ import type {
   PlanificationStatus,
   TransactionType,
 } from '@/types';
+import type { TransactionWithCategory } from './useTransactions';
 
 function generateId(): string {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -73,7 +74,7 @@ export function usePlanifications() {
           await schedulePlanificationDeadlineReminders(id, title, deadline);
         }
 
-        await fetchPlanifications();
+        fetchPlanifications();
         return { success: true, id };
       } catch (err) {
         console.error('Error creating planification:', err);
@@ -89,15 +90,16 @@ export function usePlanifications() {
     async (id: string) => {
       try {
         const now = new Date().toISOString();
+        setPlanifications((prev) => prev.filter((p) => p.id !== id));
         await db.runAsync(
           'UPDATE planifications SET deleted_at = ?, updated_at = ? WHERE id = ?',
           [now, now, id]
         );
         await cancelPlanificationReminders(id);
-        await fetchPlanifications();
         return true;
       } catch (err) {
         console.error('Error deleting planification:', err);
+        fetchPlanifications();
         return false;
       }
     },
@@ -117,7 +119,7 @@ export function usePlanifications() {
         if (deadline) {
           await schedulePlanificationDeadlineReminders(id, title, deadline);
         }
-        await fetchPlanifications();
+        fetchPlanifications();
         return true;
       } catch (err) {
         console.error('Error updating deadline:', err);
@@ -197,22 +199,24 @@ export function usePlanifications() {
 
         const now = new Date().toISOString();
 
-        for (const item of items) {
-          const transactionId = generateId();
-          await db.runAsync(
-            `INSERT INTO transactions (id, type, amount, category_id, account_id, note, created_at, updated_at, sync_status)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
-            [transactionId, item.type || 'expense', item.amount, item.category_id, accountId, item.note, now, now]
-          );
-        }
+        await db.withTransactionAsync(async () => {
+          for (const item of items) {
+            const transactionId = generateId();
+            await db.runAsync(
+              `INSERT INTO transactions (id, type, amount, category_id, account_id, note, planification_id, created_at, updated_at, sync_status)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+              [transactionId, item.type || 'expense', item.amount, item.category_id, accountId, item.note, id, now, now]
+            );
+          }
 
-        await db.runAsync(
-          `UPDATE planifications SET status = 'completed', updated_at = ? WHERE id = ?`,
-          [now, id]
-        );
+          await db.runAsync(
+            `UPDATE planifications SET status = 'completed', updated_at = ? WHERE id = ?`,
+            [now, id]
+          );
+        });
 
         await cancelPlanificationReminders(id);
-        await fetchPlanifications();
+        fetchPlanifications();
         return { success: true };
       } catch (err) {
         console.error('Error validating planification:', err);
@@ -240,6 +244,7 @@ export function usePlanifications() {
 export function usePlanificationDetail(planificationId: string | null) {
   const db = useSQLiteContext();
   const [items, setItems] = useState<PlanificationItemWithCategory[]>([]);
+  const [linkedTransactions, setLinkedTransactions] = useState<TransactionWithCategory[]>([]);
   const [planification, setPlanification] = useState<PlanificationWithTotal | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
@@ -273,6 +278,25 @@ export function usePlanificationDetail(planificationId: string | null) {
         [planificationId]
       );
       setItems(itemsResult);
+
+      // Fetch linked transactions for completed planifications
+      if (planifResult?.status === 'completed') {
+        const txResult = await db.getAllAsync<TransactionWithCategory>(
+          `SELECT t.*,
+            c.name as category_name, c.icon as category_icon, c.color as category_color,
+            a.name as account_name, a.type as account_type, a.icon as account_icon,
+            NULL as linked_account_name,
+            p.title as planification_title
+           FROM transactions t
+           LEFT JOIN categories c ON t.category_id = c.id
+           LEFT JOIN accounts a ON t.account_id = a.id
+           LEFT JOIN planifications p ON t.planification_id = p.id
+           WHERE t.planification_id = ? AND t.deleted_at IS NULL
+           ORDER BY t.created_at DESC`,
+          [planificationId]
+        );
+        setLinkedTransactions(txResult);
+      }
     } catch (err) {
       console.error('Error fetching planification detail:', err);
     } finally {
@@ -304,7 +328,7 @@ export function usePlanificationDetail(planificationId: string | null) {
           [now, planificationId]
         );
 
-        await fetchData();
+        fetchData();
         return { success: true };
       } catch (err) {
         console.error('Error adding item:', err);
@@ -321,6 +345,7 @@ export function usePlanificationDetail(planificationId: string | null) {
       if (!planificationId) return false;
 
       try {
+        setItems((prev) => prev.filter((item) => item.id !== itemId));
         await db.runAsync('DELETE FROM planification_items WHERE id = ?', [itemId]);
 
         const now = new Date().toISOString();
@@ -329,10 +354,11 @@ export function usePlanificationDetail(planificationId: string | null) {
           [now, planificationId]
         );
 
-        await fetchData();
+        fetchData();
         return true;
       } catch (err) {
         console.error('Error removing item:', err);
+        fetchData();
         return false;
       }
     },
@@ -349,10 +375,45 @@ export function usePlanificationDetail(planificationId: string | null) {
           'UPDATE planifications SET title = ?, updated_at = ? WHERE id = ?',
           [title, now, planificationId]
         );
-        await fetchData();
+        fetchData();
         return true;
       } catch (err) {
         console.error('Error updating title:', err);
+        return false;
+      }
+    },
+    [db, planificationId, fetchData]
+  );
+
+  const deleteLinkedTransaction = useCallback(
+    async (transactionId: string): Promise<'deleted_planification' | true | false> => {
+      if (!planificationId) return false;
+      try {
+        const now = new Date().toISOString();
+        setLinkedTransactions((prev) => prev.filter((t) => t.id !== transactionId));
+        await db.runAsync(
+          'UPDATE transactions SET deleted_at = ?, updated_at = ? WHERE id = ?',
+          [now, now, transactionId]
+        );
+
+        // Auto-delete planification if no linked transactions remain
+        const remaining = await db.getFirstAsync<{ count: number }>(
+          'SELECT COUNT(*) as count FROM transactions WHERE planification_id = ? AND deleted_at IS NULL',
+          [planificationId]
+        );
+        if (remaining && remaining.count === 0) {
+          await db.runAsync(
+            'UPDATE planifications SET deleted_at = ?, updated_at = ? WHERE id = ?',
+            [now, now, planificationId]
+          );
+          return 'deleted_planification';
+        }
+
+        fetchData();
+        return true;
+      } catch (err) {
+        console.error('Error deleting linked transaction:', err);
+        fetchData();
         return false;
       }
     },
@@ -366,9 +427,11 @@ export function usePlanificationDetail(planificationId: string | null) {
   return {
     planification,
     items,
+    linkedTransactions,
     total,
     addItem,
     removeItem,
+    deleteLinkedTransaction,
     updateTitle,
     refresh: fetchData,
     isLoading,
