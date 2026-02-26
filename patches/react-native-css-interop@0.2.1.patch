@@ -1,0 +1,13 @@
+diff --git a/dist/runtime/components.js b/dist/runtime/components.js
+index 8835a2d9705857c11ed70b242266f9790542d408..743beb81e742bb38579fe35dbef045e52ce4d298 100644
+--- a/dist/runtime/components.js
++++ b/dist/runtime/components.js
+@@ -5,7 +5,7 @@ const react_native_1 = require("react-native");
+ const api_1 = require("./api");
+ (0, api_1.cssInterop)(react_native_1.Image, { className: "style" });
+ (0, api_1.cssInterop)(react_native_1.Pressable, { className: "style" });
+-(0, api_1.cssInterop)(react_native_1.SafeAreaView, { className: "style" });
++// Removed: SafeAreaView from react-native is deprecated
+ (0, api_1.cssInterop)(react_native_1.Switch, { className: "style" });
+ (0, api_1.cssInterop)(react_native_1.Text, { className: "style" });
+ (0, api_1.cssInterop)(react_native_1.TouchableHighlight, { className: "style" });

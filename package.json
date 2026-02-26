@@ -67,5 +67,10 @@
     "tailwindcss": "^3.4.19",
     "typescript": "~5.9.2"
   },
+  "pnpm": {
+    "patchedDependencies": {
+      "react-native-css-interop@0.2.1": "patches/react-native-css-interop@0.2.1.patch"
+    }
+  },
   "private": true
 }
