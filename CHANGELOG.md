@@ -2,6 +2,19 @@
 
 All notable changes to Mitsitsy will be documented in this file.
 
+## [1.1.0] - 2026-03-03
+
+### Added
+- Gamification system: earn XP and level up by tracking your finances
+- Daily streaks with streak freeze protection
+- Daily challenges (log expense, log 3 transactions, check plans, log income)
+- 7 badges to unlock (first expense, 3/7/30 day streaks, 500 XP, level 5, 50 transactions)
+- XP and level system with progress bar on dashboard
+- Achievements tab in History screen with stats and badge grid
+- Level up celebration modal
+- XP toast notification after each action
+- Differentiated XP rewards: income (15 XP) > transfer (8 XP) > expense (5 XP)
+
 ## [1.0.6] - 2025-02-26
 
 ### Added

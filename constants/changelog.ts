@@ -11,6 +11,17 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.1.0",
+    date: "2026-03-03",
+    changes: [
+      { type: "added", key: "changelog.gamificationSystem" },
+      { type: "added", key: "changelog.streaksAndChallenges" },
+      { type: "added", key: "changelog.badgesAndAchievements" },
+      { type: "added", key: "changelog.xpAndLevels" },
+      { type: "added", key: "changelog.dailyChallenges" },
+    ],
+  },
+  {
     version: "1.0.6",
     date: "2025-02-26",
     changes: [

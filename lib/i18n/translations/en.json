@@ -348,7 +348,12 @@
     "planificationGrouping": "Planification transactions are grouped into a single card",
     "autoDeleteEmptyPlanification": "Planification is automatically deleted when all its transactions are removed",
     "deleteCustomCategory": "Fixed custom category deletion",
-    "deleteModalNames": "Names now display correctly in delete confirmation modals"
+    "deleteModalNames": "Names now display correctly in delete confirmation modals",
+    "gamificationSystem": "Gamification system: earn XP and level up by tracking your finances",
+    "streaksAndChallenges": "Daily streaks and challenges to keep you motivated",
+    "badgesAndAchievements": "Badges and achievements to unlock as you manage your money",
+    "xpAndLevels": "XP and level system with progress bar",
+    "dailyChallenges": "Daily challenge to stay on top of your finances"
   },
   "gamification": {
     "streak": "Streak",

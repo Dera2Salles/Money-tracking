@@ -348,7 +348,12 @@
     "planificationGrouping": "Les transactions d'une planification sont regroupées dans un seul card",
     "autoDeleteEmptyPlanification": "Suppression automatique d'une planification si toutes ses transactions sont supprimées",
     "deleteCustomCategory": "Correction de la suppression des catégories personnalisées",
-    "deleteModalNames": "Les noms s'affichent correctement dans les modals de suppression"
+    "deleteModalNames": "Les noms s'affichent correctement dans les modals de suppression",
+    "gamificationSystem": "Système de gamification : gagnez de l'XP et montez de niveau en suivant vos finances",
+    "streaksAndChallenges": "Séries quotidiennes et défis pour rester motivé",
+    "badgesAndAchievements": "Badges et succès à débloquer en gérant votre argent",
+    "xpAndLevels": "Système d'XP et de niveaux avec barre de progression",
+    "dailyChallenges": "Défi du jour pour garder le cap sur vos finances"
   },
   "gamification": {
     "streak": "Série",

@@ -348,7 +348,12 @@
     "planificationGrouping": "Ny fifanakalozana avy amin'ny planifikasiona dia atambatra ao anaty karatra iray",
     "autoDeleteEmptyPlanification": "Fafana ho azy ny planifikasiona raha voafafa daholo ny fifanakalozana rehetra",
     "deleteCustomCategory": "Voalamina ny famafana ny sokajy manokana",
-    "deleteModalNames": "Miseho tsara ny anarana ao amin'ny modal famafana"
+    "deleteModalNames": "Miseho tsara ny anarana ao amin'ny modal famafana",
+    "gamificationSystem": "Rafitra gamification: mahazo XP sy miakatra laharana amin'ny fanaraha-maso ny volanao",
+    "streaksAndChallenges": "Fitohy isan'andro sy fanamby mba hahatonga anao ho faly",
+    "badgesAndAchievements": "Badges sy fahombiazana azo soketina amin'ny fitantanana ny volanao",
+    "xpAndLevels": "Rafitra XP sy laharana miaraka amin'ny bary fandrosoana",
+    "dailyChallenges": "Fanamby isan'andro mba hanaraha-maso ny volanao"
   },
   "gamification": {
     "streak": "Fitohy",
