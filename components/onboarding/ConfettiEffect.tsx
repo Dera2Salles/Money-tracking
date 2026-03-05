@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { Dimensions, StyleSheet } from 'react-native';
+import { Dimensions, StyleSheet, View } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -101,10 +101,10 @@ export function ConfettiEffect({ trigger, onComplete }: ConfettiEffectProps) {
   if (!trigger) return null;
 
   return (
-    <>
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
       {particles.map((p) => (
         <ConfettiParticle key={p.id} particle={p} />
       ))}
-    </>
+    </View>
   );
 }

@@ -9,6 +9,7 @@ import { useTheme } from '@/contexts';
 import { useSettings, useAccounts, useCategories } from '@/hooks';
 import { useSQLiteContext } from '@/lib/database';
 import { migrateDatabase } from '@/lib/database/migrations';
+import { useGamificationStore } from '@/stores/gamificationStore';
 import { cancelAllReminders } from '@/lib/notifications';
 import { AddCategoryModal } from '@/components/AddCategoryModal';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
@@ -136,13 +137,27 @@ export default function SettingsScreen() {
         DROP TABLE IF EXISTS categories;
         DROP TABLE IF EXISTS settings;
         DROP TABLE IF EXISTS sync_meta;
+        DROP TABLE IF EXISTS gamification;
+        DROP TABLE IF EXISTS badges;
         PRAGMA foreign_keys = ON;
         PRAGMA user_version = 0;
       `);
       await migrateDatabase(db);
       await cancelAllReminders();
+      useGamificationStore.getState().initialize({
+        currentStreak: 0,
+        longestStreak: 0,
+        lastActivityDate: '',
+        totalXP: 0,
+        streakFreezeAvailable: 1,
+        streakFreezeUsedDate: '',
+        dailyChallengeDate: '',
+        dailyChallengeType: '',
+        dailyChallengeCompleted: false,
+        badges: [],
+      });
       setConfirmAction(null);
-      router.replace('/onboarding');
+      setTimeout(() => router.replace('/onboarding'), 300);
     } catch (err) {
       console.error('Error resetting app:', err);
     }

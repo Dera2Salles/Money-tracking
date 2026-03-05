@@ -219,7 +219,7 @@ export default function WowScreen() {
                         <Text className="text-sm font-semibold text-typography-900">{fmt(cat.amount)}</Text>
                       </HStack>
                       <View style={{ height: 6, borderRadius: 3, backgroundColor: isDark ? '#2C2C2E' : '#E5E5EA' }}>
-                        <Animated.View
+                        <View
                           style={{
                             height: '100%',
                             borderRadius: 3,
@@ -265,11 +265,7 @@ export default function WowScreen() {
       </Box>
 
       {/* Confetti overlay */}
-      {showConfetti && (
-        <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          <ConfettiEffect trigger={showConfetti} />
-        </View>
-      )}
+      {showConfetti && <ConfettiEffect trigger={showConfetti} />}
     </View>
   );
 }

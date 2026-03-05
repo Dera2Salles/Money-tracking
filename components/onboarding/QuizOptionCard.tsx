@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -48,7 +48,7 @@ export function QuizOptionCard({ label, emoji, isSelected, onPress, index }: Qui
   return (
     <Animated.View style={animatedStyle}>
       <PressableScale onPress={onPress} haptic="medium" scaleValue={0.96}>
-        <Animated.View
+        <View
           style={[
             styles.card,
             {
@@ -64,7 +64,7 @@ export function QuizOptionCard({ label, emoji, isSelected, onPress, index }: Qui
           >
             {label}
           </Text>
-        </Animated.View>
+        </View>
       </PressableScale>
     </Animated.View>
   );
