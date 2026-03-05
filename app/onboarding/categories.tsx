@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { View, ScrollView, Pressable } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
@@ -15,6 +16,8 @@ import { useTheme } from '@/contexts';
 import { DEFAULT_CATEGORIES } from '@/constants/categories';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
 import { getDarkModeColors } from '@/constants/darkMode';
+import { ProgressBar } from '@/components/onboarding/ProgressBar';
+import { PressableScale } from '@/components/onboarding/PressableScale';
 
 export default function CategoriesScreen() {
   const router = useRouter();
@@ -43,6 +46,7 @@ export default function CategoriesScreen() {
   };
 
   const handleFinish = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const success = await saveOnboardingData({
       bankBalance: bankBalance || '0',
       cashBalance: cashBalance || '0',
@@ -60,8 +64,9 @@ export default function CategoriesScreen() {
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
     >
       <Box className="flex-1 p-6">
+        <ProgressBar step={9} totalSteps={9} />
+
         <VStack space="md" className="mb-4">
-          <Text className="text-typography-500">{t('onboarding.step')} 3/3</Text>
           <Heading size="xl" className="text-typography-900">
             {t('onboarding.chooseCategories')}
           </Heading>
@@ -75,7 +80,7 @@ export default function CategoriesScreen() {
             {categories.map((category) => {
               const isSelected = selectedCategories.has(category.id);
               return (
-                <Pressable
+                <PressableScale
                   key={category.id}
                   onPress={() => toggleCategory(category.id)}
                 >
@@ -114,7 +119,7 @@ export default function CategoriesScreen() {
                       )}
                     </Box>
                   </HStack>
-                </Pressable>
+                </PressableScale>
               );
             })}
           </VStack>

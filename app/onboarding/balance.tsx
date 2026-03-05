@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
@@ -22,6 +23,7 @@ import {
 import { useTheme } from '@/contexts';
 import { useCurrency } from '@/stores/settingsStore';
 import { formatAmountInput, parseAmount, getNumericValue } from '@/lib/amountInput';
+import { ProgressBar } from '@/components/onboarding/ProgressBar';
 
 export default function BalanceScreen() {
   const router = useRouter();
@@ -48,6 +50,7 @@ export default function BalanceScreen() {
     }
 
     setError('');
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push({
       pathname: '/onboarding/categories' as const,
       params: {
@@ -80,8 +83,8 @@ export default function BalanceScreen() {
       >
         <Box className="flex-1 p-6">
           <VStack className="flex-1" space="xl">
+              <ProgressBar step={8} totalSteps={9} />
               <VStack space="sm">
-                <Text className="text-typography-500">{t('onboarding.step')} 2/3</Text>
                 <Heading size="xl" className="text-typography-900">
                   {t('onboarding.configureAccounts')}
                 </Heading>

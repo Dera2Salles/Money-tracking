@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { View, Pressable } from 'react-native';
+import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { Box } from '@/components/ui/box';
 import { VStack } from '@/components/ui/vstack';
@@ -15,6 +16,8 @@ import { CURRENCIES, DEFAULT_CURRENCY } from '@/constants/currencies';
 import { useSettings } from '@/hooks';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
 import { getDarkModeColors } from '@/constants/darkMode';
+import { ProgressBar } from '@/components/onboarding/ProgressBar';
+import { PressableScale } from '@/components/onboarding/PressableScale';
 
 export default function CurrencyScreen() {
   const router = useRouter();
@@ -29,10 +32,11 @@ export default function CurrencyScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleNext = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setIsLoading(true);
     await setCurrency(selectedCurrency);
     setIsLoading(false);
-    router.push('/onboarding/balance');
+    router.push('/onboarding/wow');
   };
 
   return (
@@ -41,13 +45,15 @@ export default function CurrencyScreen() {
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
     >
       <Box className="flex-1 p-6">
-        <VStack space="md" className="mb-6">
-          <Text className="text-typography-500">{t('onboarding.configuration')}</Text>
+        <ProgressBar step={6} totalSteps={9} />
+
+        <VStack space="md" className="mb-8">
+          <Text className="text-typography-500">{t('onboarding.currencyStep')}</Text>
           <Heading size="xl" className="text-typography-900">
-            {t('onboarding.chooseCurrency')}
+            {t('onboarding.currencyTitle')}
           </Heading>
           <Text className="text-typography-600">
-            {t('onboarding.currencyDescription')}
+            {t('onboarding.currencySubtitle')}
           </Text>
         </VStack>
 
@@ -55,7 +61,7 @@ export default function CurrencyScreen() {
           {CURRENCIES.map((currency) => {
             const isSelected = selectedCurrency === currency.code;
             return (
-              <Pressable
+              <PressableScale
                 key={currency.code}
                 onPress={() => setSelectedCurrency(currency.code)}
               >
@@ -88,19 +94,16 @@ export default function CurrencyScreen() {
                       {t(`currencies.${currency.code}`)}
                     </Text>
                   </VStack>
-                  <Box
-                    className="w-6 h-6 rounded-full border-2 items-center justify-center"
-                    style={{
-                      backgroundColor: isSelected ? theme.colors.primary : 'transparent',
-                      borderColor: isSelected ? theme.colors.primary : colors.cardBorder,
-                    }}
-                  >
-                    {isSelected && (
+                  {isSelected && (
+                    <Box
+                      className="w-6 h-6 rounded-full items-center justify-center"
+                      style={{ backgroundColor: theme.colors.primary }}
+                    >
                       <Ionicons name="checkmark" size={14} color="white" />
-                    )}
-                  </Box>
+                    </Box>
+                  )}
                 </HStack>
-              </Pressable>
+              </PressableScale>
             );
           })}
         </VStack>
@@ -109,28 +112,17 @@ export default function CurrencyScreen() {
           {t('onboarding.currencyChangeHint')}
         </Text>
 
-        <HStack space="md">
-          <Button
-            variant="outline"
-            size="xl"
-            className="flex-1"
-            onPress={() => router.back()}
-            isDisabled={isLoading}
-          >
-            <ButtonText>{t('onboarding.back')}</ButtonText>
-          </Button>
-          <Button
-            size="xl"
-            className="flex-1"
-            style={{ backgroundColor: theme.colors.primary }}
-            onPress={handleNext}
-            isDisabled={isLoading}
-          >
-            <ButtonText className="text-white">
-              {isLoading ? t('common.loading') : t('onboarding.next')}
-            </ButtonText>
-          </Button>
-        </HStack>
+        <Button
+          size="xl"
+          className="w-full"
+          style={{ backgroundColor: theme.colors.primary }}
+          onPress={handleNext}
+          isDisabled={isLoading}
+        >
+          <ButtonText className="text-white">
+            {isLoading ? t('common.loading') : t('onboarding.currencyCta')}
+          </ButtonText>
+        </Button>
       </Box>
     </View>
   );
