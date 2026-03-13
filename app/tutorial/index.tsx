@@ -84,12 +84,12 @@ export default function AnimatedTutorial() {
 
   const handleSkip = async () => {
     await complete();
-    router.replace(onboardingCompleted ? '/(tabs)' : '/onboarding/currency');
+    router.replace(onboardingCompleted ? '/(tabs)' : '/onboarding');
   };
 
   const handleFinish = async () => {
     await complete();
-    router.replace(onboardingCompleted ? '/(tabs)' : '/onboarding/currency');
+    router.replace(onboardingCompleted ? '/(tabs)' : '/onboarding');
   };
 
   const goToIndex = (newIndex: number) => {

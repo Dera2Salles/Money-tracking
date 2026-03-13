@@ -316,6 +316,14 @@
     "stat_stress": "Ny fahitana mazava ny vola dia mampihena ny tebiteby 40%.",
     "stat_plan_better": "Ny olona mandamina dia 2x matetika hahatratra ny tanjony ara-bola.",
     "message": "Vaovao tsara? Vao avy nanao ny dingana voalohany ianao. Ary eto Mitsitsy hanampy anao.",
+    "personalizedMessage": "Efa {{duration}} izay no niainanao izany. Te {{goal}} ianao. Vaovao tsara? Vao avy nanao ny dingana voalohany ianao.",
+    "duration_few_months": "volana vitsivitsy",
+    "duration_more_than_year": "mihoatra ny herintaona",
+    "duration_always": "ela be",
+    "goal_less_stress": "tsy hitebiteby intsony",
+    "goal_reach_goals": "hahatratra ny tanjonao",
+    "goal_feel_free": "hahatsapa fahafahana",
+    "goal_enjoy_life": "hifaly kokoa amin'ny fiainana",
     "cta": "Jereo ny fomba hanampian'i Mitsitsy ahy"
   },
   "solution": {

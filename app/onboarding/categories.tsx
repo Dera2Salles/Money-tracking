@@ -26,7 +26,8 @@ export default function CategoriesScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const effectiveScheme = useEffectiveColorScheme();
-  const colors = getDarkModeColors(effectiveScheme === 'dark');
+  const isDark = effectiveScheme === 'dark';
+  const colors = getDarkModeColors(isDark);
   const { bankBalance, cashBalance } = useLocalSearchParams<{ bankBalance: string; cashBalance: string }>();
   const { saveOnboardingData, isLoading, categories } = useOnboarding();
   const posthog = usePostHog();
@@ -69,7 +70,7 @@ export default function CategoriesScreen() {
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
     >
       <Box className="flex-1 p-6">
-        <ProgressBar step={9} totalSteps={9} />
+        <ProgressBar step={8} totalSteps={8} />
 
         <VStack space="md" className="mb-4">
           <Heading size="xl" className="text-typography-900">
@@ -90,10 +91,9 @@ export default function CategoriesScreen() {
                   onPress={() => toggleCategory(category.id)}
                 >
                   <HStack
-                    className="p-4 rounded-xl border-2"
+                    className="p-4 rounded-xl"
                     style={{
-                      backgroundColor: isSelected ? theme.colors.primaryLight : colors.cardBg,
-                      borderColor: isSelected ? theme.colors.primary : colors.cardBorder,
+                      backgroundColor: isSelected ? theme.colors.primaryLight : colors.chipBg,
                     }}
                     space="md"
                   >
@@ -113,10 +113,9 @@ export default function CategoriesScreen() {
                       </Text>
                     </VStack>
                     <Box
-                      className="w-6 h-6 rounded-full border-2 items-center justify-center"
+                      className="w-6 h-6 rounded-full items-center justify-center"
                       style={{
-                        backgroundColor: isSelected ? theme.colors.primary : 'transparent',
-                        borderColor: isSelected ? theme.colors.primary : colors.cardBorder,
+                        backgroundColor: isSelected ? theme.colors.primary : (isDark ? '#3A3A3C' : '#E5E5EA'),
                       }}
                     >
                       {isSelected && (
@@ -130,26 +129,15 @@ export default function CategoriesScreen() {
           </VStack>
         </ScrollView>
 
-        <HStack space="md" className="mt-4">
-          <Button
-            variant="outline"
-            size="xl"
-            className="flex-1"
-            onPress={() => router.back()}
-            isDisabled={isLoading}
-          >
-            <ButtonText>{t('onboarding.back')}</ButtonText>
-          </Button>
-          <Button
-            size="xl"
-            className="flex-1"
-            style={{ backgroundColor: theme.colors.primary }}
-            onPress={handleFinish}
-            isDisabled={isLoading || selectedCategories.size === 0}
-          >
-            <ButtonText className="text-white">{isLoading ? t('common.loading') : t('onboarding.finish')}</ButtonText>
-          </Button>
-        </HStack>
+        <Button
+          size="xl"
+          className="w-full mt-4"
+          style={{ backgroundColor: theme.colors.primary }}
+          onPress={handleFinish}
+          isDisabled={isLoading || selectedCategories.size === 0}
+        >
+          <ButtonText className="text-white">{isLoading ? t('common.loading') : t('onboarding.finish')}</ButtonText>
+        </Button>
       </Box>
     </View>
   );

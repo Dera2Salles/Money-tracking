@@ -40,7 +40,7 @@ export default function QuizQ1Screen() {
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
     >
       <Box className="flex-1 p-6">
-        <ProgressBar step={1} totalSteps={9} />
+        <ProgressBar step={1} totalSteps={8} />
 
         <VStack space="md" className="mb-8">
           <Text className="text-typography-500">{t('quiz.questionLabel')} 1/3</Text>

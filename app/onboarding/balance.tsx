@@ -22,6 +22,8 @@ import {
 } from '@/components/ui/form-control';
 import { useTheme } from '@/contexts';
 import { useCurrency } from '@/stores/settingsStore';
+import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { getDarkModeColors } from '@/constants/darkMode';
 import { formatAmountInput, parseAmount, getNumericValue } from '@/lib/amountInput';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 
@@ -31,6 +33,9 @@ export default function BalanceScreen() {
   const { theme } = useTheme();
   const currency = useCurrency();
   const { t } = useTranslation();
+  const effectiveScheme = useEffectiveColorScheme();
+  const isDark = effectiveScheme === 'dark';
+  const colors = getDarkModeColors(isDark);
   const [bankBalance, setBankBalance] = useState('');
   const [cashBalance, setCashBalance] = useState('');
   const [error, setError] = useState('');
@@ -83,7 +88,7 @@ export default function BalanceScreen() {
       >
         <Box className="flex-1 p-6">
           <VStack className="flex-1" space="xl">
-              <ProgressBar step={8} totalSteps={9} />
+              <ProgressBar step={7} totalSteps={8} />
               <VStack space="sm">
                 <Heading size="xl" className="text-typography-900">
                   {t('onboarding.configureAccounts')}
@@ -95,8 +100,8 @@ export default function BalanceScreen() {
 
               <VStack space="lg" className="mt-4">
                 <Box
-                  className="p-4 rounded-xl border-2"
-                  style={{ borderColor: theme.colors.primary + '40' }}
+                  className="p-4 rounded-xl"
+                  style={{ backgroundColor: isDark ? colors.chipBg : theme.colors.primaryLight }}
                 >
                   <HStack space="md" className="items-center mb-3">
                     <Box
@@ -128,8 +133,8 @@ export default function BalanceScreen() {
                 </Box>
 
                 <Box
-                  className="p-4 rounded-xl border-2"
-                  style={{ borderColor: theme.colors.secondary + '40' }}
+                  className="p-4 rounded-xl"
+                  style={{ backgroundColor: isDark ? colors.chipBg : theme.colors.secondaryLight }}
                 >
                   <HStack space="md" className="items-center mb-3">
                     <Box
@@ -173,24 +178,14 @@ export default function BalanceScreen() {
               {t('onboarding.balanceChangeHint')}
             </Text>
 
-            <HStack space="md" className="mt-4">
-              <Button
-                variant="outline"
-                size="xl"
-                className="flex-1"
-                onPress={() => router.back()}
-              >
-                <ButtonText>{t('onboarding.back')}</ButtonText>
-              </Button>
-              <Button
-                size="xl"
-                className="flex-1"
-                style={{ backgroundColor: theme.colors.primary }}
-                onPress={handleNext}
-              >
-                <ButtonText className="text-white">{t('onboarding.next')}</ButtonText>
-              </Button>
-            </HStack>
+            <Button
+              size="xl"
+              className="w-full mt-4"
+              style={{ backgroundColor: theme.colors.primary }}
+              onPress={handleNext}
+            >
+              <ButtonText className="text-white">{t('onboarding.next')}</ButtonText>
+            </Button>
           </VStack>
         </Box>
       </KeyboardAwareScrollView>

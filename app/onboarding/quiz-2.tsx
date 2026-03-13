@@ -39,7 +39,7 @@ export default function QuizQ2Screen() {
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
     >
       <Box className="flex-1 p-6">
-        <ProgressBar step={2} totalSteps={9} />
+        <ProgressBar step={2} totalSteps={8} />
 
         <VStack space="md" className="mb-8">
           <Text className="text-typography-500">{t('quiz.questionLabel')} 2/3</Text>

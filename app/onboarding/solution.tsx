@@ -114,7 +114,7 @@ export default function SolutionScreen() {
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
     >
       <Box className="flex-1 p-6">
-        <ProgressBar step={5} totalSteps={9} />
+        <ProgressBar step={5} totalSteps={8} />
 
         <VStack space="md" className="mb-8">
           <Heading size="xl" className="text-typography-900">
@@ -134,7 +134,7 @@ export default function SolutionScreen() {
               descKey={benefit.descKey}
               index={index}
               color={theme.colors.primary}
-              cardBg={colors.cardBg}
+              cardBg={colors.chipBg}
             />
           ))}
         </VStack>
@@ -145,7 +145,7 @@ export default function SolutionScreen() {
           style={{ backgroundColor: theme.colors.primary }}
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            router.push('/onboarding/currency');
+            router.push('/onboarding/wow');
           }}
         >
           <ButtonText className="text-white">{t('solution.cta')}</ButtonText>

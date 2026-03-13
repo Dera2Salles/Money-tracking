@@ -316,6 +316,14 @@
     "stat_stress": "Having a clear view of your finances reduces stress by 40%.",
     "stat_plan_better": "People who plan reach their financial goals 2x more often.",
     "message": "The good news? You just took the first step. And Mitsitsy is here to help you.",
+    "personalizedMessage": "You've been dealing with this for {{duration}}. You want {{goal}}. The good news? You just took the first step.",
+    "duration_few_months": "a few months",
+    "duration_more_than_year": "over a year",
+    "duration_always": "a long time",
+    "goal_less_stress": "less stress",
+    "goal_reach_goals": "to reach your goals",
+    "goal_feel_free": "to feel free",
+    "goal_enjoy_life": "to enjoy life more",
     "cta": "See how Mitsitsy can help me"
   },
   "solution": {

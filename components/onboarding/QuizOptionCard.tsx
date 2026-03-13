@@ -1,12 +1,14 @@
 import { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
   withDelay,
+  withSpring,
   Easing,
 } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import { Text } from '@/components/ui/text';
 import { useTheme } from '@/contexts';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
@@ -28,6 +30,7 @@ export function QuizOptionCard({ label, emoji, isSelected, onPress, index }: Qui
   const colors = getDarkModeColors(isDark);
   const translateY = useSharedValue(30);
   const opacity = useSharedValue(0);
+  const checkScale = useSharedValue(0);
 
   useEffect(() => {
     translateY.value = withDelay(
@@ -40,49 +43,46 @@ export function QuizOptionCard({ label, emoji, isSelected, onPress, index }: Qui
     );
   }, []);
 
+  useEffect(() => {
+    checkScale.value = isSelected
+      ? withSpring(1, { damping: 12, stiffness: 200 })
+      : withTiming(0, { duration: 150 });
+  }, [isSelected]);
+
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
     opacity: opacity.value,
+  }));
+
+  const checkStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: checkScale.value }],
+    opacity: checkScale.value,
   }));
 
   return (
     <Animated.View style={animatedStyle}>
       <PressableScale onPress={onPress} haptic="medium" scaleValue={0.96}>
         <View
-          style={[
-            styles.card,
-            {
-              backgroundColor: isSelected ? theme.colors.primaryLight : colors.cardBg,
-              borderColor: isSelected ? theme.colors.primary : colors.cardBorder,
-            },
-          ]}
+          className="flex-row items-center p-4 rounded-2xl gap-3"
+          style={{
+            backgroundColor: isSelected ? theme.colors.primaryLight : colors.chipBg,
+          }}
         >
-          <Text style={styles.emoji}>{emoji}</Text>
+          <Text className="text-2xl">{emoji}</Text>
           <Text
-            className="text-typography-900 flex-1"
-            style={styles.label}
+            className="text-typography-900 flex-1 text-base"
           >
             {label}
           </Text>
+          <Animated.View style={checkStyle}>
+            <Ionicons
+              name="checkmark-circle"
+              size={22}
+              color={theme.colors.primary}
+            />
+          </Animated.View>
         </View>
       </PressableScale>
     </Animated.View>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 16,
-    borderWidth: 2,
-    gap: 12,
-  },
-  emoji: {
-    fontSize: 24,
-  },
-  label: {
-    fontSize: 16,
-  },
-});

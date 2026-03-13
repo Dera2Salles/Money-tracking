@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { useState, useCallback, useEffect } from 'react';
+import { View, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -24,12 +24,12 @@ import { ConfettiEffect } from '@/components/onboarding/ConfettiEffect';
 import { useTheme } from '@/contexts';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
 import { getDarkModeColors } from '@/constants/darkMode';
-import { useCurrency } from '@/stores/settingsStore';
+import { CURRENCIES, DEFAULT_CURRENCY } from '@/constants/currencies';
 import { formatCurrency } from '@/lib/currency';
 import { PressableScale } from '@/components/onboarding/PressableScale';
 import { usePostHog } from 'posthog-react-native';
+import { useSettings } from '@/hooks';
 
-// Amounts in cents, scaled per currency
 const AMOUNTS: Record<string, { expenses: number[]; balance: number }> = {
   MGA: { expenses: [300000, 500000, 800000, 1500000], balance: 10000000 },
   EUR: { expenses: [350, 1200, 1500, 2500], balance: 50000 },
@@ -43,6 +43,26 @@ const EXPENSE_TEMPLATES = [
   { id: 'phone', labelKey: 'wow.expensePhone', icon: 'phone-portrait' as const, categoryKey: 'wow.catBills', color: '#A78BFA' },
 ];
 
+function AnimatedBar({ targetWidth, color, delay }: { targetWidth: number; color: string; delay: number }) {
+  const width = useSharedValue(0);
+
+  useEffect(() => {
+    width.value = withDelay(
+      delay,
+      withTiming(targetWidth, { duration: 800, easing: Easing.out(Easing.cubic) })
+    );
+  }, [targetWidth]);
+
+  const barStyle = useAnimatedStyle(() => ({
+    width: `${width.value}%`,
+    height: '100%',
+    borderRadius: 3,
+    backgroundColor: color,
+  }));
+
+  return <Animated.View style={barStyle} />;
+}
+
 export default function WowScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -51,23 +71,38 @@ export default function WowScreen() {
   const effectiveScheme = useEffectiveColorScheme();
   const isDark = effectiveScheme === 'dark';
   const colors = getDarkModeColors(isDark);
-
-  const currency = useCurrency();
+  const { setCurrency } = useSettings();
   const posthog = usePostHog();
-  const currencyAmounts = AMOUNTS[currency.code] || AMOUNTS.USD;
-  const expenses = EXPENSE_TEMPLATES.map((tpl, i) => ({ ...tpl, amount: currencyAmounts.expenses[i] }));
 
+  const [selectedCurrency, setSelectedCurrency] = useState(DEFAULT_CURRENCY);
   const [tappedExpenses, setTappedExpenses] = useState<Set<string>>(new Set());
   const [showConfetti, setShowConfetti] = useState(false);
   const balanceAnim = useSharedValue(1);
   const reportOpacity = useSharedValue(0);
   const reportTranslateY = useSharedValue(30);
 
+  const currencyAmounts = AMOUNTS[selectedCurrency] || AMOUNTS.USD;
+  const expenses = EXPENSE_TEMPLATES.map((tpl, i) => ({ ...tpl, amount: currencyAmounts.expenses[i] }));
+
   const currentBalance = currencyAmounts.balance - expenses
     .filter(e => tappedExpenses.has(e.id))
     .reduce((sum, e) => sum + e.amount, 0);
 
   const allTapped = tappedExpenses.size === expenses.length;
+  const totalSpent = expenses.reduce((sum, e) => sum + e.amount, 0);
+
+  const categoryBreakdown = expenses.reduce<Record<string, { amount: number; color: string; categoryKey: string }>>((acc, e) => {
+    const cat = e.categoryKey;
+    if (!acc[cat]) acc[cat] = { amount: 0, color: e.color, categoryKey: cat };
+    acc[cat].amount += e.amount;
+    return acc;
+  }, {});
+
+  const handleSelectCurrency = async (code: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setSelectedCurrency(code);
+    await setCurrency(code);
+  };
 
   const handleTapExpense = useCallback((expense: typeof expenses[0]) => {
     if (tappedExpenses.has(expense.id)) return;
@@ -77,13 +112,11 @@ export default function WowScreen() {
     newTapped.add(expense.id);
     setTappedExpenses(newTapped);
 
-    // Bounce the balance
     balanceAnim.value = withSpring(1, { damping: 4, stiffness: 200 });
 
-    // Check if all done
     if (newTapped.size === expenses.length) {
       posthog.capture('wow_moment_completed', {
-        currency: currency.code,
+        currency: selectedCurrency,
         expenses_tapped: newTapped.size,
       });
       setTimeout(() => {
@@ -93,23 +126,13 @@ export default function WowScreen() {
         reportTranslateY.value = withDelay(200, withTiming(0, { duration: 600, easing: Easing.out(Easing.cubic) }));
       }, 300);
     }
-  }, [tappedExpenses, expenses.length]);
+  }, [tappedExpenses, expenses.length, selectedCurrency]);
 
   const balanceStyle = useAnimatedStyle(() => ({
     transform: [{ scale: balanceAnim.value }],
   }));
 
-  const fmt = (amountInCents: number) => formatCurrency(amountInCents, currency.code);
-
-  const totalSpent = expenses.reduce((sum, e) => sum + e.amount, 0);
-
-  // Category breakdown for mini report
-  const categoryBreakdown = expenses.reduce<Record<string, { amount: number; color: string; categoryKey: string }>>((acc, e) => {
-    const cat = e.categoryKey;
-    if (!acc[cat]) acc[cat] = { amount: 0, color: e.color, categoryKey: cat };
-    acc[cat].amount += e.amount;
-    return acc;
-  }, {});
+  const fmt = (amountInCents: number) => formatCurrency(amountInCents, selectedCurrency);
 
   const reportStyle = useAnimatedStyle(() => ({
     opacity: reportOpacity.value,
@@ -122,9 +145,9 @@ export default function WowScreen() {
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
     >
       <Box className="flex-1 p-6">
-        <ProgressBar step={7} totalSteps={9} />
+        <ProgressBar step={6} totalSteps={8} />
 
-        <VStack space="md" className="mb-6">
+        <VStack space="md" className="mb-4">
           <Heading size="xl" className="text-typography-900">
             {t('wow.title')}
           </Heading>
@@ -133,9 +156,33 @@ export default function WowScreen() {
           </Text>
         </VStack>
 
+        {/* Inline currency selector */}
+        <HStack space="sm" className="mb-4">
+          {CURRENCIES.map((cur) => {
+            const isActive = selectedCurrency === cur.code;
+            return (
+              <Pressable
+                key={cur.code}
+                onPress={() => handleSelectCurrency(cur.code)}
+                className="flex-1 py-3 rounded-xl items-center min-h-[44px] justify-center"
+                style={{
+                  backgroundColor: isActive ? theme.colors.primary : colors.cardBg,
+                }}
+              >
+                <Text
+                  className="font-bold text-sm"
+                  style={{ color: isActive ? '#FFFFFF' : colors.textMuted }}
+                >
+                  {cur.symbol} {cur.code}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </HStack>
+
         {/* Balance card */}
         <Box
-          className="p-5 rounded-2xl mb-6"
+          className="p-5 rounded-2xl mb-4"
           style={{ backgroundColor: theme.colors.primary + '15' }}
         >
           <Text className="text-sm text-typography-500 mb-1">{t('wow.balance')}</Text>
@@ -165,10 +212,9 @@ export default function WowScreen() {
                 scaleValue={0.96}
               >
                 <HStack
-                  className="p-4 rounded-xl border-2"
+                  className="p-4 rounded-xl"
                   style={{
-                    backgroundColor: isTapped ? colors.chipBg : colors.cardBg,
-                    borderColor: isTapped ? 'transparent' : colors.cardBorder,
+                    backgroundColor: isTapped ? (isDark ? colors.cardBg : '#E5E5EA') : colors.chipBg,
                     opacity: isTapped ? 0.6 : 1,
                   }}
                   space="md"
@@ -202,21 +248,20 @@ export default function WowScreen() {
           })}
         </VStack>
 
-        {/* Mini report */}
+        {/* Mini report with animated bars */}
         {allTapped && (
           <Animated.View style={reportStyle}>
             <Box
               className="p-4 rounded-2xl mb-4"
-              style={{ backgroundColor: colors.cardBg, borderWidth: 1, borderColor: colors.cardBorder }}
+              style={{ backgroundColor: colors.chipBg }}
             >
               <HStack className="items-center mb-3" space="sm">
                 <Ionicons name="bar-chart" size={18} color={theme.colors.primary} />
                 <Text className="font-bold text-typography-900">{t('wow.reportTitle')}</Text>
               </HStack>
 
-              {/* Category bars */}
               <VStack space="sm">
-                {Object.values(categoryBreakdown).map((cat) => {
+                {Object.values(categoryBreakdown).map((cat, idx) => {
                   const pct = (cat.amount / totalSpent) * 100;
                   return (
                     <VStack key={cat.categoryKey} space="xs">
@@ -225,21 +270,13 @@ export default function WowScreen() {
                         <Text className="text-sm font-semibold text-typography-900">{fmt(cat.amount)}</Text>
                       </HStack>
                       <View style={{ height: 6, borderRadius: 3, backgroundColor: isDark ? '#2C2C2E' : '#E5E5EA' }}>
-                        <View
-                          style={{
-                            height: '100%',
-                            borderRadius: 3,
-                            backgroundColor: cat.color,
-                            width: `${pct}%`,
-                          }}
-                        />
+                        <AnimatedBar targetWidth={pct} color={cat.color} delay={idx * 200} />
                       </View>
                     </VStack>
                   );
                 })}
               </VStack>
 
-              {/* Total */}
               <HStack className="justify-between mt-3 pt-3" style={{ borderTopWidth: 1, borderTopColor: colors.cardBorder }}>
                 <Text className="font-bold text-typography-900">{t('wow.reportTotal')}</Text>
                 <Text className="font-bold" style={{ color: '#FF3B30' }}>-{fmt(totalSpent)}</Text>
@@ -270,7 +307,6 @@ export default function WowScreen() {
         </Button>
       </Box>
 
-      {/* Confetti overlay */}
       {showConfetti && <ConfettiEffect trigger={showConfetti} />}
     </View>
   );
