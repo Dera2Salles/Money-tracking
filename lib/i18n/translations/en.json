@@ -100,7 +100,8 @@
     "total": "Total",
     "noData": "No data for this period",
     "income": "Income",
-    "expenses": "Expenses"
+    "expenses": "Expenses",
+    "categoryDetail": "Detail by Category"
   },
   "calendar": {
     "title": "Transaction Calendar",

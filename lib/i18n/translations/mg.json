@@ -100,7 +100,8 @@
     "total": "Totaly",
     "noData": "Tsy misy angona amin'ity vanim-potoana ity",
     "income": "Vola niditra",
-    "expenses": "Fandaniana"
+    "expenses": "Fandaniana",
+    "categoryDetail": "Antsipirihany isan-tsokajiny"
   },
   "calendar": {
     "title": "Kalandrien'ny vola",

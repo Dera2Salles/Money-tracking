@@ -12,6 +12,14 @@ if (!isPostHogConfigured) {
   );
 }
 
+// Suppress PostHog network errors that spam the console when offline
+const originalConsoleError = console.error;
+console.error = (...args: unknown[]) => {
+  const msg = typeof args[0] === 'string' ? args[0] : '';
+  if (msg.includes('Error while flushing PostHog')) return;
+  originalConsoleError(...args);
+};
+
 export const posthog = new PostHog(apiKey || 'placeholder_key', {
   host,
   disabled: !isPostHogConfigured,

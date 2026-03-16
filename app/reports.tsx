@@ -34,6 +34,7 @@ export default function ReportsScreen() {
 
   const [period, setPeriod] = useState<PeriodType>('month');
   const [date, setDate] = useState(new Date());
+  const [showAmounts, setShowAmounts] = useState(false);
   const { stats } = useTransactionStats(transactions, period, date);
   const filtered = useMemo(() => filterByPeriod(transactions, period, date), [transactions, period, date]);
   const barData = useMemo(() => getBarChartData(filtered, period, date), [filtered, period, date]);
@@ -141,7 +142,29 @@ export default function ReportsScreen() {
             {/* Pie Chart - Categories */}
             {pieData.length > 0 && (
               <VStack space="sm">
-                <Text className="text-typography-700 font-semibold">{t('reports.categoryBreakdown')}</Text>
+                <HStack className="items-center justify-between">
+                  <Text className="text-typography-700 font-semibold">{t('reports.categoryBreakdown')}</Text>
+                  <HStack className="rounded-lg overflow-hidden" style={{ backgroundColor: isDark ? '#1F1F1F' : '#F3F4F6' }}>
+                    <Pressable
+                      onPress={() => setShowAmounts(false)}
+                      className="px-3 py-1"
+                      style={!showAmounts ? { backgroundColor: theme.colors.primary } : undefined}
+                    >
+                      <Text className="text-xs font-semibold" style={{ color: !showAmounts ? '#FFFFFF' : (isDark ? '#999' : '#6B7280') }}>
+                        %
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => setShowAmounts(true)}
+                      className="px-3 py-1"
+                      style={showAmounts ? { backgroundColor: theme.colors.primary } : undefined}
+                    >
+                      <Text className="text-xs font-semibold" style={{ color: showAmounts ? '#FFFFFF' : (isDark ? '#999' : '#6B7280') }}>
+                        {currencyCode}
+                      </Text>
+                    </Pressable>
+                  </HStack>
+                </HStack>
                 <HStack className="items-center justify-center" space="lg">
                   <PieChart
                     data={pieData}
@@ -161,10 +184,13 @@ export default function ReportsScreen() {
                   <VStack space="xs" className="flex-1">
                     {stats.categoryBreakdown.slice(0, 5).map((cat, i) => (
                       <HStack key={cat.id || i} className="items-center" space="sm">
-                        <Box className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color }} />
+                        <Box className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color || theme.chartColors[i % theme.chartColors.length] }} />
                         <Text className="text-sm text-typography-600 flex-1" numberOfLines={1}>{cat.name}</Text>
                         <Text className="text-sm text-typography-500">
-                          {stats.totalExpenses > 0 ? Math.round((cat.amount / stats.totalExpenses) * 100) : 0}%
+                          {showAmounts
+                            ? formatCurrency(cat.amount, currencyCode)
+                            : `${stats.totalExpenses > 0 ? Math.round((cat.amount / stats.totalExpenses) * 100) : 0}%`
+                          }
                         </Text>
                       </HStack>
                     ))}
