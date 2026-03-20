@@ -1,9 +1,6 @@
-import { Pressable } from 'react-native';
+import { Pressable, View, Text as RNText } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { HStack } from '@/components/ui/hstack';
-import { Text } from '@/components/ui/text';
-import { Box } from '@/components/ui/box';
 import { useTheme } from '@/contexts';
 import type { PeriodType } from '@/hooks/useTransactionStats';
 import { navigateDate, formatPeriodLabel } from '@/hooks/useTransactionStats';
@@ -26,33 +23,33 @@ export function PeriodSelector({ period, date, onPeriodChange, onDateChange }: P
 
   return (
     <>
-      <HStack className="rounded-xl overflow-hidden" style={{ backgroundColor: theme.colors.primaryLight }}>
+      <View className="flex-row rounded-xl overflow-hidden bg-bg-raised">
         {PERIODS.map((p) => (
           <Pressable key={p} onPress={() => onPeriodChange(p)} className="flex-1">
-            <Box
-              className="py-2 items-center"
+            <View
+              className="py-2 items-center justify-center"
               style={period === p ? { backgroundColor: theme.colors.primary } : undefined}
             >
-              <Text
-                className="text-xs font-semibold"
+              <RNText
+                className="font-ui text-ui-sm"
                 style={{ color: period === p ? '#FFFFFF' : theme.colors.primary }}
               >
                 {t(`periods.${p}`)}
-              </Text>
-            </Box>
+              </RNText>
+            </View>
           </Pressable>
         ))}
-      </HStack>
+      </View>
 
-      <HStack className="items-center justify-between px-2">
+      <View className="flex-row items-center justify-between px-2">
         <Pressable onPress={() => onDateChange(navigateDate(date, period, -1))} hitSlop={12}>
           <Ionicons name="chevron-back" size={20} color={theme.colors.primary} />
         </Pressable>
-        <Text className="text-sm font-semibold text-typography-700 capitalize">{label}</Text>
+        <RNText className="font-ui text-ui-md text-content-primary capitalize">{label}</RNText>
         <Pressable onPress={() => onDateChange(navigateDate(date, period, 1))} hitSlop={12}>
           <Ionicons name="chevron-forward" size={20} color={theme.colors.primary} />
         </Pressable>
-      </HStack>
+      </View>
     </>
   );
 }

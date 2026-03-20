@@ -1,16 +1,11 @@
 import { useState, useMemo, useCallback } from 'react';
-import { ScrollView, Pressable, FlatList } from 'react-native';
+import { ScrollView, Pressable, View, Text as RNText } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { usePostHog } from 'posthog-react-native';
-import { Box } from '@/components/ui/box';
-import { VStack } from '@/components/ui/vstack';
-import { HStack } from '@/components/ui/hstack';
-import { Text } from '@/components/ui/text';
-import { Center } from '@/components/ui/center';
 import { ExpenseCalendar } from '@/components/ExpenseCalendar';
 import { TransactionCard } from '@/components/TransactionCard';
 import { useTransactions } from '@/hooks';
@@ -19,6 +14,7 @@ import { useTheme } from '@/contexts';
 import { SEMANTIC_COLORS } from '@/constants/darkMode';
 import { formatCurrency } from '@/lib/currency';
 import { useCurrencyCode } from '@/stores/settingsStore';
+import { cn } from '@/lib/utils';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
 
 export default function CalendarScreen() {
@@ -79,37 +75,37 @@ export default function CalendarScreen() {
       style={{ flex: 1, paddingTop: insets.top }}
       contentContainerStyle={{ paddingBottom: insets.bottom + 100, paddingHorizontal: 16 }}
     >
-      <HStack className="items-center mb-4 mt-2">
+      <View className="flex-row items-center mb-4 mt-2">
         <Pressable onPress={() => router.back()} hitSlop={12}>
           <Ionicons name="arrow-back" size={24} color={theme.colors.primary} />
         </Pressable>
-        <Text className="text-xl font-bold text-typography-900 ml-3">{t('calendar.title')}</Text>
-      </HStack>
+        <RNText className="font-display text-display-md text-content-primary ml-3">{t('calendar.title')}</RNText>
+      </View>
 
-      <VStack space="md">
+      <View className="gap-4">
         {/* Month Navigation */}
-        <HStack className="items-center justify-between px-2">
+        <View className="flex-row items-center justify-between px-2">
           <Pressable onPress={() => navigateMonth(-1)} hitSlop={12}>
             <Ionicons name="chevron-back" size={20} color={theme.colors.primary} />
           </Pressable>
-          <VStack className="items-center">
-            <Text className="text-sm font-semibold text-typography-700 capitalize">{monthLabel}</Text>
-            <HStack space="md">
-              <Text className="text-xs font-semibold" style={{ color: SEMANTIC_COLORS.expense }}>
+          <View className="items-center">
+            <RNText className="font-ui text-ui-lg text-content-primary capitalize">{monthLabel}</RNText>
+            <View className="flex-row gap-3">
+              <RNText className="text-ui-sm font-ui" style={{ color: SEMANTIC_COLORS.expense }}>
                 -{formatCurrency(monthExpenses, currencyCode)}
-              </Text>
-              <Text className="text-xs font-semibold" style={{ color: SEMANTIC_COLORS.income }}>
+              </RNText>
+              <RNText className="text-ui-sm font-ui" style={{ color: SEMANTIC_COLORS.income }}>
                 +{formatCurrency(monthIncome, currencyCode)}
-              </Text>
-            </HStack>
-          </VStack>
+              </RNText>
+            </View>
+          </View>
           <Pressable onPress={() => navigateMonth(1)} hitSlop={12}>
             <Ionicons name="chevron-forward" size={20} color={theme.colors.primary} />
           </Pressable>
-        </HStack>
+        </View>
 
         {/* Calendar Grid */}
-        <Box className="p-3 rounded-xl bg-background-50">
+        <View className="p-3 rounded-xl bg-bg-surface">
           <ExpenseCalendar
             dailyTotals={dailyTotals}
             selectedDay={selectedDay}
@@ -117,46 +113,46 @@ export default function CalendarScreen() {
             year={year}
             month={month}
           />
-        </Box>
+        </View>
 
         {/* Selected Day Detail */}
         {selectedDay && (
-          <VStack space="sm">
-            <HStack className="items-center justify-between">
-              <Text className="text-typography-700 font-semibold">
+          <View className="gap-2">
+            <View className="flex-row items-center justify-between">
+              <RNText className="font-ui text-ui-md text-content-primary">
                 {new Date(year, month, selectedDay).toLocaleDateString(locale, {
                   weekday: 'long',
                   day: 'numeric',
                   month: 'long',
                 })}
-              </Text>
-              <HStack space="sm">
+              </RNText>
+              <View className="flex-row gap-2">
                 {dailyTotals[selectedDay] && dailyTotals[selectedDay].expenses > 0 && (
-                  <Text className="text-xs font-semibold" style={{ color: SEMANTIC_COLORS.expense }}>
+                  <RNText className="text-ui-sm font-ui" style={{ color: SEMANTIC_COLORS.expense }}>
                     -{formatCurrency(dailyTotals[selectedDay].expenses, currencyCode)}
-                  </Text>
+                  </RNText>
                 )}
                 {dailyTotals[selectedDay] && dailyTotals[selectedDay].income > 0 && (
-                  <Text className="text-xs font-semibold" style={{ color: SEMANTIC_COLORS.income }}>
+                  <RNText className="text-ui-sm font-ui" style={{ color: SEMANTIC_COLORS.income }}>
                     +{formatCurrency(dailyTotals[selectedDay].income, currencyCode)}
-                  </Text>
+                  </RNText>
                 )}
-              </HStack>
-            </HStack>
+              </View>
+            </View>
 
             {dayTransactions.length === 0 ? (
-              <Center className="py-8">
-                <Text className="text-2xl mb-1">📭</Text>
-                <Text className="text-typography-400 text-sm">{t('calendar.noExpenses')}</Text>
-              </Center>
+              <View className="py-8 items-center justify-center">
+                <RNText className="text-2xl mb-1">📭</RNText>
+                <RNText className="text-body-sm text-content-tertiary">{t('calendar.noExpenses')}</RNText>
+              </View>
             ) : (
               dayTransactions.map((tx) => (
                 <TransactionCard key={tx.id} transaction={tx} />
               ))
             )}
-          </VStack>
+          </View>
         )}
-      </VStack>
+      </View>
     </ScrollView>
   );
 }

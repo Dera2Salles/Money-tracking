@@ -1,14 +1,8 @@
-import { Pressable } from 'react-native';
+import { Pressable, View, Text as RNText } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { Box } from '@/components/ui/box';
-import { HStack } from '@/components/ui/hstack';
-import { VStack } from '@/components/ui/vstack';
-import { Text } from '@/components/ui/text';
 import { useTheme } from '@/contexts';
 import type { PlanificationWithTotal } from '@/types';
-import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
-import { getDarkModeColors } from '@/constants/darkMode';
 
 interface PlanificationCardProps {
   planification: PlanificationWithTotal;
@@ -39,82 +33,86 @@ export function PlanificationCard({
 }: PlanificationCardProps) {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
-  const effectiveScheme = useEffectiveColorScheme();
-  const colors = getDarkModeColors(effectiveScheme === 'dark');
   const isPending = planification.status === 'pending';
   const expired = isPending && isExpired(planification.deadline);
 
   return (
     <Pressable onPress={onPress} onLongPress={onLongPress}>
-      <Box
-        className="bg-background-50 p-4 rounded-xl mb-3"
-        style={expired ? { borderWidth: 1, borderColor: '#DC2626' } : undefined}
+      <View
+        className="bg-bg-surface p-4 rounded-xl mb-3"
+        style={expired ? { borderWidth: 1, borderColor: '#EF4444' } : undefined}
       >
-        <HStack className="justify-between items-start">
-          <VStack className="flex-1" space="xs">
-            <HStack space="sm" className="items-center flex-wrap">
-              <Text className="text-typography-900 font-semibold text-lg">
+        <View className="flex-row justify-between items-start">
+          <View className="flex-1">
+            <View className="flex-row items-center flex-wrap gap-2 mb-2">
+              <RNText
+                className="font-semibold text-lg text-content-primary"
+              >
                 {planification.title}
-              </Text>
-              <Box
+              </RNText>
+              <View
                 className="px-2 py-0.5 rounded-full"
                 style={{
                   backgroundColor: isPending ? theme.colors.primaryLight : theme.colors.secondaryLight,
                 }}
               >
-                <Text
-                  className="text-xs font-medium"
+                <RNText
+                  className="font-medium text-xs"
                   style={{ color: isPending ? theme.colors.primary : theme.colors.secondary }}
                 >
                   {isPending ? t('planification.pending') : t('planification.completed')}
-                </Text>
-              </Box>
+                </RNText>
+              </View>
               {expired && (
-                <Box className="px-2 py-0.5 rounded-full bg-error-100">
-                  <Text className="text-xs font-medium text-error-600">{t('planification.expired')}</Text>
-                </Box>
+                <View className="px-2 py-0.5 rounded-full bg-error/10">
+                  <RNText className="font-medium text-xs" style={{ color: '#EF4444' }}>
+                    {t('planification.expired')}
+                  </RNText>
+                </View>
               )}
-            </HStack>
-            <HStack space="md" className="items-center">
-              <Text className="text-typography-500 text-sm">
+            </View>
+            <View className="flex-row items-center gap-3">
+              <RNText className="text-sm" style={{ color: '#8E8EA0' }}>
                 {t('planification.itemCount', { count: planification.item_count })}
-              </Text>
+              </RNText>
               {planification.deadline && (
-                <HStack space="xs" className="items-center">
+                <View className="flex-row items-center gap-1">
                   <Ionicons
                     name="calendar-outline"
                     size={14}
-                    color={expired ? '#DC2626' : colors.textMuted}
+                    color={expired ? '#EF4444' : theme.colors.textSecondary}
                   />
-                  <Text className="text-sm" style={{ color: expired ? '#DC2626' : colors.textMuted }}>
+                  <RNText className="text-sm" style={{ color: expired ? '#EF4444' : theme.colors.textSecondary }}>
                     {formatDate(planification.deadline, i18n.language)}
-                  </Text>
-                </HStack>
+                  </RNText>
+                </View>
               )}
-            </HStack>
-          </VStack>
-          <VStack className="items-end" space="xs">
+            </View>
+          </View>
+          <View className="items-end">
             {(planification.total_expenses > 0 || planification.total_income > 0) ? (
-              <VStack className="items-end">
+              <View className="items-end">
                 {planification.total_expenses > 0 && (
-                  <Text className="text-error-600 font-semibold text-sm">
+                  <RNText className="font-semibold text-sm" style={{ color: '#EF4444' }}>
                     - {formatMoney(planification.total_expenses)}
-                  </Text>
+                  </RNText>
                 )}
                 {planification.total_income > 0 && (
-                  <Text className="text-success-600 font-semibold text-sm">
+                  <RNText className="font-semibold text-sm" style={{ color: '#22C55E' }}>
                     + {formatMoney(planification.total_income)}
-                  </Text>
+                  </RNText>
                 )}
-              </VStack>
+              </View>
             ) : (
-              <Text className="text-typography-500 font-medium">0</Text>
+              <RNText className="font-medium" style={{ color: '#8E8EA0' }}>
+                0
+              </RNText>
             )}
             {isPending && (
-              <HStack space="sm" className="items-center">
+              <View className="flex-row items-center gap-2 mt-2">
                 {onDelete && (
                   <Pressable onPress={onDelete} className="p-1">
-                    <Ionicons name="trash-outline" size={20} color="#DC2626" />
+                    <Ionicons name="trash-outline" size={20} color="#EF4444" />
                   </Pressable>
                 )}
                 {planification.item_count > 0 && onValidate && (
@@ -123,14 +121,16 @@ export function PlanificationCard({
                     className="px-3 py-1 rounded-full"
                     style={{ backgroundColor: theme.colors.primary }}
                   >
-                    <Text className="text-white text-xs font-medium">{t('planification.validate')}</Text>
+                    <RNText className="font-medium text-xs" style={{ color: '#FFFFFF' }}>
+                      {t('planification.validate')}
+                    </RNText>
                   </Pressable>
                 )}
-              </HStack>
+              </View>
             )}
-          </VStack>
-        </HStack>
-      </Box>
+          </View>
+        </View>
+      </View>
     </Pressable>
   );
 }

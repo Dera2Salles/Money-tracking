@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Dimensions } from 'react-native';
+import { View, Dimensions, Text as RNText } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -13,16 +13,12 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { Box } from '@/components/ui/box';
-import { VStack } from '@/components/ui/vstack';
-import { Heading } from '@/components/ui/heading';
-import { Text } from '@/components/ui/text';
-import { Button, ButtonText } from '@/components/ui/button';
+import { Image } from 'expo-image';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
+import { SpeechBubble } from '@/components/onboarding/SpeechBubble';
 import { useOnboardingQuiz } from '@/contexts/OnboardingQuizContext';
 import { useTheme } from '@/contexts';
-import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
-import { getDarkModeColors } from '@/constants/darkMode';
+import { PrimaryButton } from '@/components/premium';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const CIRCLE_MAX = Math.max(SCREEN_WIDTH, SCREEN_HEIGHT) * 1.5;
@@ -33,9 +29,6 @@ export default function EmpathyScreen() {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { frustration, duration, goal } = useOnboardingQuiz();
-  const effectiveScheme = useEffectiveColorScheme();
-  const isDark = effectiveScheme === 'dark';
-  const colors = getDarkModeColors(isDark);
   const [analyzing, setAnalyzing] = useState(true);
 
   const pulseScale = useSharedValue(1);
@@ -44,6 +37,7 @@ export default function EmpathyScreen() {
   const line1Y = useSharedValue(20);
   const line2Y = useSharedValue(20);
   const line3Y = useSharedValue(20);
+  const line4Y = useSharedValue(20);
   const ctaY = useSharedValue(20);
 
   useEffect(() => {
@@ -79,7 +73,9 @@ export default function EmpathyScreen() {
       line2Y.value = l2.y;
       const l3 = fadeIn(800);
       line3Y.value = l3.y;
-      const cta = fadeIn(1000);
+      const l4 = fadeIn(1000);
+      line4Y.value = l4.y;
+      const cta = fadeIn(1200);
       ctaY.value = cta.y;
     }, 1800);
 
@@ -114,6 +110,10 @@ export default function EmpathyScreen() {
     opacity: line3Y.value === 20 ? 0 : 1,
     transform: [{ translateY: line3Y.value }],
   }));
+  const line4Style = useAnimatedStyle(() => ({
+    opacity: line4Y.value === 20 ? 0 : 1,
+    transform: [{ translateY: line4Y.value }],
+  }));
   const ctaStyle = useAnimatedStyle(() => ({
     opacity: ctaY.value === 20 ? 0 : 1,
     transform: [{ translateY: ctaY.value }],
@@ -141,24 +141,29 @@ export default function EmpathyScreen() {
 
   return (
     <View
-      className="flex-1 bg-background-0"
+      className="flex-1 bg-bg-base"
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
     >
-      <Box className="flex-1 p-6">
+      <View className="flex-1 p-6">
         <ProgressBar step={4} totalSteps={8} />
 
         {analyzing ? (
-          <VStack className="flex-1 justify-center items-center" space="lg">
-            <Animated.View style={pulseStyle}>
-              <Text className="text-6xl text-center leading-[80px]">🔍</Text>
+          <View className="flex-1 justify-center items-center gap-4">
+            <Animated.View style={pulseStyle} className="items-center">
+              <SpeechBubble text={t('empathy.searchSpeech')} />
+              <Image
+                source={require('@/assets/images/bubule-search.png')}
+                style={{ width: 260, height: 260, alignSelf: 'center' }}
+                contentFit="contain"
+              />
             </Animated.View>
-            <Heading size="lg" className="text-center text-typography-900">
+            <RNText className="text-center text-display-lg font-display text-content-primary">
               {t('empathy.analyzing')}
-            </Heading>
-            <Text className="text-center text-typography-500">
+            </RNText>
+            <RNText className="text-center text-content-secondary text-body-md">
               {t('empathy.analyzingSubtitle')}
-            </Text>
-          </VStack>
+            </RNText>
+          </View>
         ) : (
           <View className="flex-1">
             {/* Expanding circle background */}
@@ -173,54 +178,56 @@ export default function EmpathyScreen() {
 
             {/* Content */}
             <Animated.View style={[{ flex: 1 }, contentStyle]}>
-              <VStack className="flex-1 justify-center" space="xl">
+              <View className="flex-1 justify-center gap-6">
                 <Animated.View style={line1Style}>
-                  <VStack space="md" className="items-center">
-                    <Text className="text-5xl text-center leading-[64px]">💡</Text>
-                    <Heading size="xl" className="text-center text-typography-900">
-                      {t(getHeadlineKey())}
-                    </Heading>
-                  </VStack>
+                  <RNText className="text-center text-display-xl font-display text-content-primary">
+                    {t(getHeadlineKey())}
+                  </RNText>
                 </Animated.View>
 
                 <Animated.View style={line2Style}>
-                  <Box
-                    className="p-5 rounded-2xl"
+                  <View
+                    className="p-5 rounded-xl bg-bg-surface"
                     style={{ backgroundColor: theme.colors.primary + '15' }}
                   >
-                    <Text
-                      className="text-center text-base leading-6"
+                    <RNText
+                      className="text-center text-body-lg leading-6 font-ui"
                       style={{ color: theme.colors.primary }}
                     >
                       {t(getStatKey())}
-                    </Text>
-                  </Box>
+                    </RNText>
+                  </View>
                 </Animated.View>
 
-                <Animated.View style={line3Style}>
-                  <Text className="text-center text-typography-600 text-base leading-6">
-                    {getPersonalizedMessage()}
-                  </Text>
+                <Animated.View style={line3Style} className="items-center">
+                  <SpeechBubble text={t('empathy.resultSpeech')} />
+                  <Image
+                    source={require('@/assets/images/bubule-motivation.png')}
+                    style={{ width: 260, height: 260, alignSelf: 'center' }}
+                    contentFit="contain"
+                  />
                 </Animated.View>
-              </VStack>
+
+                <Animated.View style={line4Style}>
+                  <RNText className="text-center text-content-secondary text-body-md leading-6">
+                    {getPersonalizedMessage()}
+                  </RNText>
+                </Animated.View>
+              </View>
 
               <Animated.View style={ctaStyle}>
-                <Button
-                  size="xl"
-                  className="w-full"
-                  style={{ backgroundColor: theme.colors.primary }}
+                <PrimaryButton
+                  label={t('empathy.cta')}
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     router.push('/onboarding/solution');
                   }}
-                >
-                  <ButtonText className="text-white">{t('empathy.cta')}</ButtonText>
-                </Button>
+                />
               </Animated.View>
             </Animated.View>
           </View>
         )}
-      </Box>
+      </View>
     </View>
   );
 }

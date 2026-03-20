@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -7,7 +7,6 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { useTheme } from '@/contexts';
-import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
 
 interface ProgressBarProps {
   step: number;
@@ -16,8 +15,6 @@ interface ProgressBarProps {
 
 export function ProgressBar({ step, totalSteps }: ProgressBarProps) {
   const { theme } = useTheme();
-  const effectiveScheme = useEffectiveColorScheme();
-  const isDark = effectiveScheme === 'dark';
   const progress = useSharedValue(0);
 
   useEffect(() => {
@@ -32,10 +29,10 @@ export function ProgressBar({ step, totalSteps }: ProgressBarProps) {
   }));
 
   return (
-    <View style={[styles.track, { backgroundColor: isDark ? '#2C2C2E' : '#E5E5EA' }]}>
+    <View className="h-1.5 rounded-full bg-bg-raised overflow-hidden mb-6">
       <Animated.View
+        className="h-full rounded-full"
         style={[
-          styles.fill,
           { backgroundColor: theme.colors.primary },
           animatedStyle,
         ]}
@@ -43,16 +40,3 @@ export function ProgressBar({ step, totalSteps }: ProgressBarProps) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  track: {
-    height: 6,
-    borderRadius: 3,
-    overflow: 'hidden',
-    marginBottom: 24,
-  },
-  fill: {
-    height: '100%',
-    borderRadius: 3,
-  },
-});

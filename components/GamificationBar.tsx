@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
-import { View, Pressable, Animated } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { HStack } from '@/components/ui/hstack';
-import { Text } from '@/components/ui/text';
+import { PressableCard } from '@/components/premium/PremiumCard';
+import { Skeleton } from '@/components/premium/Skeleton';
 import { useTheme } from '@/contexts';
 import { xpProgress, xpForLevel, calculateLevel } from '@/constants/badges';
 
@@ -28,39 +28,16 @@ interface GamificationBarProps {
   onPress: () => void;
 }
 
-function SkeletonBar({ theme }: { theme: { colors: { primaryLight: string; primary: string } } }) {
-  const opacity = useRef(new Animated.Value(0.3)).current;
-
-  useEffect(() => {
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, { toValue: 0.7, duration: 800, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 0.3, duration: 800, useNativeDriver: true }),
-      ])
-    );
-    animation.start();
-    return () => animation.stop();
-  }, [opacity]);
-
-  const barColor = theme.colors.primary + '25';
-
+function SkeletonBar() {
   return (
-    <View
-      className="mt-2 p-3 rounded-xl"
-      style={{ backgroundColor: theme.colors.primaryLight }}
-    >
-      <Animated.View style={{ opacity, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-        {/* Streak placeholder */}
-        <View style={{ width: 50, height: 12, backgroundColor: barColor, borderRadius: 6 }} />
-        {/* Level placeholder */}
-        <View style={{ width: 36, height: 12, backgroundColor: barColor, borderRadius: 6 }} />
-        {/* XP bar placeholder */}
-        <View style={{ flex: 1, height: 6, backgroundColor: barColor, borderRadius: 3 }} />
-        {/* XP text placeholder */}
-        <View style={{ width: 48, height: 12, backgroundColor: barColor, borderRadius: 6 }} />
-        {/* Challenge icon placeholder */}
-        <View style={{ width: 16, height: 16, backgroundColor: barColor, borderRadius: 8 }} />
-      </Animated.View>
+    <View className="rounded-2xl bg-bg-surface px-3 py-2.5 gap-2">
+      <View className="flex-row items-center gap-2">
+        <Skeleton className="h-4 w-8 rounded" />
+        <Skeleton className="h-4 w-12 rounded" />
+        <Skeleton className="h-2 flex-1 rounded-full" />
+        <Skeleton className="h-4 w-16 rounded" />
+      </View>
+      <Skeleton className="h-3 w-40 rounded" />
     </View>
   );
 }
@@ -75,64 +52,57 @@ export function GamificationBar({ currentStreak, totalXP, dailyChallengeComplete
     return () => clearInterval(interval);
   }, []);
 
-  if (isLoading) return <SkeletonBar theme={theme} />;
+  if (isLoading) return <SkeletonBar />;
 
   const level = calculateLevel(totalXP);
   const progress = xpProgress(totalXP);
   const nextLevelXP = xpForLevel(level + 1);
 
   return (
-    <Pressable onPress={onPress}>
-      <View className="mt-2 p-3 rounded-xl" style={{ backgroundColor: theme.colors.primaryLight }}>
-        <HStack className="items-center" space="md">
-          {/* Streak */}
-          <HStack space="xs" className="items-center">
-            <Ionicons
-              name={currentStreak > 0 ? 'flame' : 'flame-outline'}
-              size={16}
-              color={currentStreak > 0 ? '#EF4444' : '#9CA3AF'}
-            />
-            <Text className="text-xs font-bold" style={{ color: currentStreak > 0 ? '#EF4444' : '#9CA3AF' }}>
-              {t('gamification.streakDays', { count: currentStreak })}
-            </Text>
-          </HStack>
+    <PressableCard onPress={onPress} className="px-3 py-2.5">
+      <View className="gap-2">
+        {/* Single row: 🔥 1j · Niv. 1 · [====] · 9/100 XP · ⭐ */}
+        <View className="flex-row items-center gap-2">
+          <Text className="text-sm">{currentStreak > 0 ? '🔥' : '❄️'}</Text>
+          <Text className="text-ui-xs font-ui" style={{ color: currentStreak > 0 ? '#EF4444' : '#9CA3AF' }}>
+            {currentStreak}j
+          </Text>
 
-          {/* Level */}
-          <Text className="text-xs font-bold" style={{ color: theme.colors.primary }}>
+          <Text className="text-ui-xs font-ui" style={{ color: theme.colors.primary }}>
             {t('gamification.level', { level })}
           </Text>
 
-          {/* XP Progress Bar */}
-          <View style={{ flex: 1, height: 6, backgroundColor: theme.colors.primary + '30', borderRadius: 3 }}>
+          <View className="flex-1 h-2 bg-bg-raised rounded-full overflow-hidden">
             <View
+              className="h-full rounded-full"
               style={{
                 width: `${Math.min(progress * 100, 100)}%`,
-                height: '100%',
                 backgroundColor: theme.colors.primary,
-                borderRadius: 3,
               }}
             />
           </View>
-          <Text className="text-xs" style={{ color: theme.colors.primary }}>
+
+          <Text className="text-ui-xs font-ui text-content-secondary">
             {t('gamification.xpOf', { current: totalXP, next: nextLevelXP })}
           </Text>
 
-          {/* Daily Challenge */}
           <Ionicons
             name={dailyChallengeCompleted ? 'checkmark-circle' : 'star-outline'}
             size={16}
             color={dailyChallengeCompleted ? '#22C55E' : '#EAB308'}
           />
-        </HStack>
+        </View>
+
+        {/* Countdown */}
         {currentStreak > 0 && (
-          <HStack space="xs" className="items-center mt-1">
-            <Ionicons name="time-outline" size={10} color={theme.colors.primary} />
-            <Text style={{ fontSize: 9, color: theme.colors.primary }}>
+          <View className="flex-row items-center gap-1">
+            <Ionicons name="time-outline" size={11} color="#9CA3AF" />
+            <Text className="text-content-tertiary font-body-regular" style={{ fontSize: 10 }}>
               {t('gamification.nextStreak', { time: countdown })}
             </Text>
-          </HStack>
+          </View>
         )}
       </View>
-    </Pressable>
+    </PressableCard>
   );
 }

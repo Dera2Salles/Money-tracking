@@ -1,12 +1,10 @@
-import { Pressable } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { Box } from '@/components/ui/box';
-import { HStack } from '@/components/ui/hstack';
-import { VStack } from '@/components/ui/vstack';
-import { Text } from '@/components/ui/text';
+import { PressableCard } from '@/components/premium/PremiumCard';
 import { formatCurrency } from '@/lib/currency';
 import { useCurrencyCode } from '@/stores/settingsStore';
+import { useTheme } from '@/contexts';
 import { DEFAULT_CATEGORIES } from '@/constants/categories';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
 
@@ -15,11 +13,12 @@ const DEFAULT_CATEGORY_IDS = DEFAULT_CATEGORIES.map((c) => c.id);
 interface TransactionCardProps {
   transaction: TransactionWithCategory;
   onPress?: () => void;
-  onLongPress?: () => void;
+  onDelete?: () => void;
 }
 
-export function TransactionCard({ transaction, onPress, onLongPress }: TransactionCardProps) {
+export function TransactionCard({ transaction, onPress, onDelete }: TransactionCardProps) {
   const currencyCode = useCurrencyCode();
+  const { theme } = useTheme();
   const { t, i18n } = useTranslation();
   const isExpense = transaction.type === 'expense';
   const isTransfer = !!transaction.transfer_id;
@@ -68,63 +67,70 @@ export function TransactionCard({ transaction, onPress, onLongPress }: Transacti
   };
 
   return (
-    <Pressable onPress={onPress} onLongPress={onLongPress}>
-      <HStack
-        className="bg-background-0 p-4 rounded-xl border border-outline-100"
-        space="md"
+    <View>
+      <PressableCard
+        onPress={onPress || (() => {})}
+        className="p-4"
       >
-        <Box
-          className="w-12 h-12 rounded-full items-center justify-center"
-          style={{
-            backgroundColor: iconColor + '20',
-          }}
-        >
-          <Ionicons
-            name={(transaction.category_icon || 'cube') as keyof typeof Ionicons.glyphMap}
-            size={24}
-            color={iconColor}
-          />
-        </Box>
-
-        <VStack className="flex-1" space="xs">
-          <Text className="font-semibold text-typography-900">
-            {getCategoryName()}
-          </Text>
-          {isTransfer && getTransferLabel() && (
-            <Text className="text-primary-600 text-sm font-medium">
-              {getTransferLabel()}
-            </Text>
-          )}
-          {!isTransfer && !isExpense && transaction.account_name && (
-            <Text className="text-success-600 text-sm font-medium">
-              → {getAccountDisplayName(transaction.account_name, transaction.account_type)}
-            </Text>
-          )}
-          {transaction.note && !isTransfer && (
-            <Text className="text-typography-500 text-sm" numberOfLines={1}>
-              {transaction.note}
-            </Text>
-          )}
-          <Text className="text-typography-400 text-xs">
-            {formatTime(transaction.created_at)}
-          </Text>
-        </VStack>
-
-        <VStack className="items-end justify-between">
-          <Text
-            className={`font-bold text-lg ${
-              isTransfer ? 'text-primary-600' : isExpense ? 'text-error-600' : 'text-success-600'
-            }`}
+        <View className="flex-row gap-3">
+          <View
+            className="w-12 h-12 rounded-full items-center justify-center"
+            style={{ backgroundColor: iconColor + '14' }}
           >
-            {isTransfer ? '' : sign}{formattedAmount}
-          </Text>
-          {onLongPress && (
-            <Pressable onPress={onLongPress} hitSlop={8}>
-              <Ionicons name="trash-outline" size={16} color="#DC2626" />
-            </Pressable>
-          )}
-        </VStack>
-      </HStack>
-    </Pressable>
+            <Ionicons
+              name={(transaction.category_icon || 'cube') as keyof typeof Ionicons.glyphMap}
+              size={24}
+              color={iconColor}
+            />
+          </View>
+
+          <View className="flex-1">
+            <Text className="font-ui text-ui-md text-content-primary">
+              {getCategoryName()}
+            </Text>
+            {isTransfer && getTransferLabel() && (
+              <Text className="text-ui-sm font-ui" style={{ color: theme.colors.primary }}>
+                {getTransferLabel()}
+              </Text>
+            )}
+            {!isTransfer && !isExpense && transaction.account_name && (
+              <Text className="text-ui-sm font-ui" style={{ color: theme.colors.primary }}>
+                → {getAccountDisplayName(transaction.account_name, transaction.account_type)}
+              </Text>
+            )}
+            {transaction.note && !isTransfer && (
+              <Text
+                className="font-body-regular text-body-sm" style={{ color: '#8E8EA0' }}
+                numberOfLines={1}
+              >
+                {transaction.note}
+              </Text>
+            )}
+            <Text className="text-ui-xs font-body-regular" style={{ color: '#8E8EA0' }}>
+              {formatTime(transaction.created_at)}
+            </Text>
+          </View>
+
+          <View className="items-end justify-center">
+            <Text
+              className="font-ui text-ui-lg font-bold"
+              style={{ color: isTransfer ? theme.colors.primary : isExpense ? '#EF4444' : '#22C55E' }}
+            >
+              {isTransfer ? '' : sign}{formattedAmount}
+            </Text>
+          </View>
+        </View>
+      </PressableCard>
+      {onDelete && (
+        <Pressable
+          onPress={onDelete}
+          hitSlop={10}
+          className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-error items-center justify-center"
+          style={{ zIndex: 10 }}
+        >
+          <Ionicons name="close" size={12} color="#FFFFFF" />
+        </Pressable>
+      )}
+    </View>
   );
 }

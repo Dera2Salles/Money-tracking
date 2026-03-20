@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { View } from 'react-native';
+import { View, Text as RNText } from 'react-native';
+import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { EaseView } from 'react-native-ease';
+import { SpeechBubble } from '@/components/onboarding/SpeechBubble';
 import { usePostHog } from 'posthog-react-native';
 import { useTranslation } from 'react-i18next';
-import { Box } from '@/components/ui/box';
-import { VStack } from '@/components/ui/vstack';
-import { Heading } from '@/components/ui/heading';
-import { Text } from '@/components/ui/text';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { QuizOptionCard } from '@/components/onboarding/QuizOptionCard';
 import { useOnboardingQuiz, type GoalAnswer } from '@/contexts/OnboardingQuizContext';
@@ -36,23 +35,36 @@ export default function QuizQ3Screen() {
 
   return (
     <View
-      className="flex-1 bg-background-0"
+      className="flex-1 bg-bg-base"
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
     >
-      <Box className="flex-1 p-6">
+      <View className="flex-1 px-6 py-6">
         <ProgressBar step={3} totalSteps={8} />
 
-        <VStack space="md" className="mb-8">
-          <Text className="text-typography-500">{t('quiz.questionLabel')} 3/3</Text>
-          <Heading size="xl" className="text-typography-900">
+        <View className="gap-4 mb-8">
+          <RNText className="font-body-regular text-body-sm text-content-tertiary">
+            {t('quiz.questionLabel')} 3/3
+          </RNText>
+          <RNText className="font-display text-display-lg text-content-primary">
             {t('quiz.q3Title')}
-          </Heading>
-          <Text className="text-typography-600">
-            {t('quiz.q3Subtitle')}
-          </Text>
-        </VStack>
+          </RNText>
+        </View>
 
-        <VStack space="md" className="flex-1">
+        <EaseView
+          className="items-center mb-4"
+          initialAnimate={{ opacity: 0, translateY: 30 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: 'timing', duration: 400, easing: 'easeOut' }}
+        >
+          <SpeechBubble text={t('quiz.q3Subtitle')} />
+          <Image
+            source={require('@/assets/images/bubule-smile.png')}
+            style={{ width: 260, height: 260, alignSelf: 'center' }}
+            contentFit="contain"
+          />
+        </EaseView>
+
+        <View className="gap-4 flex-1">
           {OPTIONS.map((option, index) => (
             <QuizOptionCard
               key={option.key}
@@ -63,8 +75,8 @@ export default function QuizQ3Screen() {
               index={index}
             />
           ))}
-        </VStack>
-      </Box>
+        </View>
+      </View>
     </View>
   );
 }

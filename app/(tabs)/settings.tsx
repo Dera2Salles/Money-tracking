@@ -3,7 +3,7 @@ import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Heading } from '@/components/ui/heading';
+import { Text } from '@/components/ui/text';
 import { getCurrencyByCode } from '@/constants/currencies';
 import { useTheme } from '@/contexts';
 import { useSettings, useAccounts, useCategories } from '@/hooks';
@@ -184,11 +184,11 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View className="flex-1 bg-background-50" style={{ paddingTop: insets.top }}>
+    <View className="flex-1 bg-bg-base" style={{ paddingTop: insets.top }}>
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 32 }}>
-        <Heading size="2xl" className="text-typography-900 px-4 py-6">
+        <Text className="font-display text-display-lg text-content-primary px-4 py-6">
           {t('settings.title')}
-        </Heading>
+        </Text>
 
         <AccountsSection
           accounts={accounts}

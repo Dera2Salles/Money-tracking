@@ -3,7 +3,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
-import { getDarkModeColors } from '@/constants/darkMode';
+import { getBgBaseHex } from '@/constants/designTokens';
 import { useTranslation } from 'react-i18next';
 
 export default function TabsLayout() {
@@ -11,7 +11,6 @@ export default function TabsLayout() {
   const { theme } = useTheme();
   const effectiveScheme = useEffectiveColorScheme();
   const isDark = effectiveScheme === 'dark';
-  const colors = getDarkModeColors(isDark);
   const { t } = useTranslation();
 
   return (
@@ -19,20 +18,21 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: theme.colors.primary,
-        tabBarInactiveTintColor: colors.textMuted,
+        tabBarInactiveTintColor: isDark ? '#6E6E7D' : '#9C9CA8',
         tabBarStyle: {
           height: 60 + insets.bottom,
           paddingBottom: insets.bottom + 8,
           paddingTop: 8,
-          backgroundColor: colors.cardBg,
-          borderTopColor: colors.cardBorder,
+          backgroundColor: isDark ? '#1A1A20' : '#FFFFFF',
+          borderTopColor: isDark ? '#2A2A34' : '#F0F0F4',
         },
         tabBarLabelStyle: {
           fontSize: 12,
+          fontFamily: 'PlusJakartaSans-SemiBold',
         },
         animation: 'shift',
         sceneStyle: {
-          backgroundColor: colors.background,
+          backgroundColor: getBgBaseHex(isDark),
         },
       }}
     >

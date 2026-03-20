@@ -281,7 +281,8 @@
     "greeting": "Salut !",
     "title": "Prêt à reprendre le contrôle de tes finances ?",
     "subtitle": "Quelques questions pour personnaliser ton expérience",
-    "cta": "C'est parti !"
+    "cta": "C'est parti !",
+    "speechBubble": "Bonjour, je suis Bubule, votre guide !"
   },
   "quiz": {
     "questionLabel": "Question",
@@ -306,6 +307,8 @@
   "empathy": {
     "analyzing": "Analyse de votre profil...",
     "analyzingSubtitle": "On prépare quelque chose de personnalisé",
+    "searchSpeech": "Hmm, laissez-moi regarder ça de plus près...",
+    "resultSpeech": "J'ai trouvé ! Voici ce que je pense de vous",
     "headlineDefault": "Vous n'êtes pas seul(e)",
     "headline_dont_know_where": "72% des gens ne savent pas où passe leur argent",
     "headline_hard_to_save": "Épargner est le défi #1 de la plupart des gens",
@@ -371,7 +374,8 @@
     "reportTitle": "Votre mini-rapport",
     "reportTotal": "Total dépensé",
     "successMessage": "Bravo ! Vous voyez comme c'est simple ?",
-    "cta": "Configurer mon compte"
+    "cta": "Configurer mon compte",
+    "bubuleCongrats": "Bravo ! Vous voyez comme c'est facile de suivre vos dépenses !"
   },
   "tutorial": {
     "slide1Title": "Prenez le contrôle",
@@ -510,7 +514,13 @@
     "activityFilters": "Filtres par type dans l'historique : dépenses, revenus, transferts",
     "reducedRedundancy": "Interface simplifiée : moins de données redondantes entre les écrans",
     "transferFilter": "Le filtre Transferts affiche correctement les transferts",
-    "transferNotCountedAsExpense": "Les transferts ne sont plus comptabilisés comme des dépenses"
+    "transferNotCountedAsExpense": "Les transferts ne sont plus comptabilisés comme des dépenses",
+    "bubuleMascot": "Bubule, votre mascotte et guide, est arrivé !",
+    "bubuleOnboarding": "Bubule vous accompagne tout au long de l'introduction",
+    "bubuleWowMoment": "Bubule vous félicite quand vous terminez le mini-rapport",
+    "premiumUIRedesign": "Interface redesignée avec un style premium",
+    "speechBubbleDesign": "Bulles de dialogue aux couleurs de votre thème",
+    "emptyStatesWithBubule": "Bubule apparaît sur les écrans vides pour vous motiver"
   },
   "gamification": {
     "streak": "Série",
@@ -560,6 +570,19 @@
     "notifChallengeTitle": "Défi du jour non complété",
     "notifChallengeBody": "Il te reste quelques heures pour gagner 50 XP",
     "notifWeeklyTitle": "Résumé de la semaine",
-    "notifWeeklyBody": "Consulte tes rapports pour voir ta progression"
+    "notifWeeklyBody": "Consulte tes rapports pour voir ta progression",
+    "bubuleGreeting": "Bravo, tu gères bien ! Continue comme ça !",
+    "bubuleStreak": "{{count}} jours d'affilée, tu es en feu !",
+    "bubuleNewUser": "Salut ! Prêt à prendre le contrôle de tes finances ?",
+    "bubuleChallenge": "Un défi t'attend aujourd'hui, tu relèves ?",
+    "bubuleEncourage": "Chaque ariary compte, tu fais du bon travail !",
+    "bubuleSave": "As-tu pensé à noter tes dépenses aujourd'hui ?",
+    "bubuleHappy": "Je suis content de te revoir !",
+    "bubuleTip": "Petit conseil : vérifie tes dépenses chaque soir !",
+    "bubuleMotivation": "Tu es sur la bonne voie, continue !",
+    "bubuleAchievements": "Voici tes exploits ! Continue comme ça !",
+    "recentSuccess": "Succès Récents",
+    "newBadge": "Nouveau badge : {{name}}",
+    "streakMilestone": "Série de {{count}} jours"
   }
 }

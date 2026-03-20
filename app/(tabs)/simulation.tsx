@@ -1,26 +1,18 @@
 import { useState, useCallback } from 'react';
-import { View, ScrollView, Pressable, Platform } from 'react-native';
+import { View, ScrollView, Pressable, Platform, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, Href, useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
-import { Box } from '@/components/ui/box';
-import { VStack } from '@/components/ui/vstack';
-import { HStack } from '@/components/ui/hstack';
-import { Heading } from '@/components/ui/heading';
-import { Text } from '@/components/ui/text';
-import { Button, ButtonText } from '@/components/ui/button';
-import { Input, InputField } from '@/components/ui/input';
-import { Center } from '@/components/ui/center';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { PlanificationCard } from '@/components/PlanificationCard';
 import { ValidatePlanificationDialog } from '@/components/ValidatePlanificationDialog';
 import { usePlanifications, useBalance, useAccounts, useTips, useGamification } from '@/hooks';
 import { useTheme } from '@/contexts';
 import { usePostHog } from 'posthog-react-native';
-import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
-import { getDarkModeColors } from '@/constants/darkMode';
+import { PremiumCard, PrimaryButton, SecondaryButton, PremiumInput, EmptyState, Divider } from '@/components/premium';
+import { cn } from '@/lib/utils';
 import type { PlanificationWithTotal } from '@/types';
 
 function formatDate(dateStr: string, locale: string = 'fr-FR'): string {
@@ -33,8 +25,6 @@ export default function PlanificationScreen() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
-  const effectiveScheme = useEffectiveColorScheme();
-  const colors = getDarkModeColors(effectiveScheme === 'dark');
   const { balance, refresh: refreshBalance } = useBalance();
   const { accounts, refresh: refreshAccounts, formatMoney } = useAccounts();
   const {
@@ -111,82 +101,80 @@ export default function PlanificationScreen() {
   };
 
   return (
-    <View className="flex-1 bg-background-0" style={{ paddingTop: insets.top }}>
+    <View className="flex-1 bg-bg-base" style={{ paddingTop: insets.top }}>
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 24 }}>
-        <VStack className="p-6" space="xl">
-          <VStack>
-            <HStack className="justify-between items-center">
-              <Heading size="xl" className="text-typography-900">{t('planification.title')}</Heading>
+        <View className="p-6 gap-6">
+          <View className="gap-2">
+            <View className="flex-row justify-between items-center">
+              <Text className="font-display text-display-md text-content-primary">{t('planification.title')}</Text>
               {!showNewForm && (
                 <Pressable onPress={() => setShowNewForm(true)}>
                   <Ionicons name="add-circle" size={32} color={theme.colors.primary} />
                 </Pressable>
               )}
-            </HStack>
+            </View>
             {showTip && currentTip && (
-              <HStack className="mt-3 p-3 rounded-xl items-center" style={{ backgroundColor: theme.colors.primary + '20' }} space="sm">
+              <View className="mt-3 p-3 rounded-xl flex-row items-center gap-2 bg-bg-surface">
                 <Ionicons name="bulb" size={16} color={theme.colors.primary} />
-                <Text className="flex-1 text-xs" style={{ color: theme.colors.primary }}>{t(currentTip)}</Text>
-              </HStack>
+                <Text className="flex-1 text-xs text-brand">{t(currentTip)}</Text>
+              </View>
             )}
-          </VStack>
+          </View>
 
-          <Box className="p-4 rounded-2xl" style={{ backgroundColor: theme.colors.primaryLight }}>
-            <VStack space="md">
-              <HStack className="justify-between">
-                <Text className="text-typography-600">{t('planification.currentBalance')}</Text>
-                <Text className="text-typography-900 font-semibold">{formatMoney(balance)}</Text>
-              </HStack>
+          <PremiumCard className="p-4">
+            <View className="gap-3">
+              <View className="flex-row justify-between">
+                <Text className="text-content-secondary font-body-regular text-body-md">{t('planification.currentBalance')}</Text>
+                <Text className="text-content-primary font-ui text-ui-lg">{formatMoney(balance)}</Text>
+              </View>
               {(totalPendingExpenses > 0 || totalPendingIncome > 0) && (
                 <>
                   {totalPendingExpenses > 0 && (
-                    <HStack className="justify-between">
-                      <Text className="text-typography-600">{t('planification.plannedExpenses')}</Text>
-                      <Text className="text-error-600 font-semibold">- {formatMoney(totalPendingExpenses)}</Text>
-                    </HStack>
+                    <View className="flex-row justify-between">
+                      <Text className="text-content-secondary font-body-regular text-body-md">{t('planification.plannedExpenses')}</Text>
+                      <Text className="font-semibold" style={{ color: '#EF4444' }}>- {formatMoney(totalPendingExpenses)}</Text>
+                    </View>
                   )}
                   {totalPendingIncome > 0 && (
-                    <HStack className="justify-between">
-                      <Text className="text-typography-600">{t('planification.plannedIncome')}</Text>
-                      <Text className="text-success-600 font-semibold">+ {formatMoney(totalPendingIncome)}</Text>
-                    </HStack>
+                    <View className="flex-row justify-between">
+                      <Text className="text-content-secondary font-body-regular text-body-md">{t('planification.plannedIncome')}</Text>
+                      <Text className="font-semibold" style={{ color: '#22C55E' }}>+ {formatMoney(totalPendingIncome)}</Text>
+                    </View>
                   )}
-                  <Box className="h-px bg-outline-200" />
-                  <HStack className="justify-between items-center">
-                    <Text className="text-typography-700 font-medium">{t('planification.balanceAfter')}</Text>
+                  <Divider />
+                  <View className="flex-row justify-between items-center">
+                    <Text className="text-content-primary font-ui text-ui-md">{t('planification.balanceAfter')}</Text>
                     <Text
                       className="text-2xl font-bold"
-                      style={{ color: balance - netImpact < 0 ? '#DC2626' : theme.colors.primary }}
+                      style={{ color: balance - netImpact < 0 ? '#EF4444' : theme.colors.primary }}
                     >
                       {formatMoney(balance - netImpact)}
                     </Text>
-                  </HStack>
+                  </View>
                 </>
               )}
-            </VStack>
-          </Box>
+            </View>
+          </PremiumCard>
 
           {showNewForm && (
-            <Box className="bg-background-50 p-4 rounded-xl">
-              <VStack space="md">
-                <Text className="text-typography-700 font-semibold">{t('planification.new')}</Text>
-                <Input size="md">
-                  <InputField placeholder={t('planification.placeholder')} value={newTitle} onChangeText={setNewTitle} autoFocus />
-                </Input>
-                <VStack space="sm">
-                  <Text className="text-typography-600 text-sm">{t('planification.deadlineOptional')}</Text>
-                  <Pressable onPress={() => setShowDatePicker(true)} className="p-3 rounded-lg bg-background-100">
-                    <HStack space="sm" className="items-center">
+            <PremiumCard className="p-4">
+              <View className="gap-3">
+                <Text className="text-content-primary font-ui text-ui-lg">{t('planification.new')}</Text>
+                <PremiumInput placeholder={t('planification.placeholder')} value={newTitle} onChangeText={setNewTitle} autoFocus />
+                <View className="gap-2">
+                  <Text className="text-content-secondary text-body-sm">{t('planification.deadlineOptional')}</Text>
+                  <Pressable onPress={() => setShowDatePicker(true)} className="p-3 rounded-xl bg-bg-raised">
+                    <View className="flex-row gap-2 items-center">
                       <Ionicons name="calendar-outline" size={20} color={theme.colors.primary} />
-                      <Text className="text-typography-700">
+                      <Text className="text-content-primary flex-1">
                         {deadline ? formatDate(deadline.toISOString(), i18n.language) : t('planification.chooseDate')}
                       </Text>
                       {deadline && (
-                        <Pressable onPress={() => setDeadline(null)} className="ml-auto">
-                          <Ionicons name="close-circle" size={20} color={colors.textMuted} />
+                        <Pressable onPress={() => setDeadline(null)}>
+                          <Ionicons name="close-circle" size={20} color="#8E8EA0" />
                         </Pressable>
                       )}
-                    </HStack>
+                    </View>
                   </Pressable>
                   {showDatePicker && (
                     <DateTimePicker
@@ -197,22 +185,22 @@ export default function PlanificationScreen() {
                       onChange={handleDateChange}
                     />
                   )}
-                </VStack>
-                <HStack space="md">
-                  <Button variant="outline" className="flex-1" onPress={() => { setShowNewForm(false); setNewTitle(''); setDeadline(null); }}>
-                    <ButtonText>{t('common.cancel')}</ButtonText>
-                  </Button>
-                  <Button className="flex-1" style={{ backgroundColor: theme.colors.primary }} onPress={handleCreate} isDisabled={!newTitle.trim() || isLoading}>
-                    <ButtonText className="text-white">{t('planification.create')}</ButtonText>
-                  </Button>
-                </HStack>
-              </VStack>
-            </Box>
+                </View>
+                <View className="flex-row gap-3">
+                  <View className="flex-1">
+                    <SecondaryButton label={t('common.cancel')} onPress={() => { setShowNewForm(false); setNewTitle(''); setDeadline(null); }} />
+                  </View>
+                  <View className="flex-1">
+                    <PrimaryButton label={t('planification.create')} onPress={handleCreate} disabled={!newTitle.trim() || isLoading} />
+                  </View>
+                </View>
+              </View>
+            </PremiumCard>
           )}
 
           {pendingPlanifications.length > 0 && (
-            <VStack space="md">
-              <Text className="font-semibold text-lg" style={{ color: theme.colors.primary }}>{t('planification.pending')} ({pendingPlanifications.length})</Text>
+            <View className="gap-3">
+              <Text className="font-ui text-ui-lg text-brand">{t('planification.pending')} ({pendingPlanifications.length})</Text>
               {pendingPlanifications.map((p) => (
                 <PlanificationCard
                   key={p.id}
@@ -224,30 +212,27 @@ export default function PlanificationScreen() {
                   formatMoney={formatMoney}
                 />
               ))}
-            </VStack>
+            </View>
           )}
 
           {completedPlanifications.length > 0 && (
-            <VStack space="md">
-              <Text className="font-semibold text-lg" style={{ color: theme.colors.secondary }}>{t('planification.completed')} ({completedPlanifications.length})</Text>
+            <View className="gap-3">
+              <Text className="font-ui text-ui-lg text-content-secondary">{t('planification.completed')} ({completedPlanifications.length})</Text>
               {completedPlanifications.map((p) => (
                 <PlanificationCard key={p.id} planification={p} onPress={() => router.push(`/planification/${p.id}` as Href)} formatMoney={formatMoney} />
               ))}
-            </VStack>
+            </View>
           )}
 
           {planifications.length === 0 && !showNewForm && (
-            <Center className="py-12">
-              <Ionicons name="clipboard-outline" size={48} color={colors.textMuted} />
-              <Text className="text-typography-500 text-center mt-4">
-                {t('planification.emptyMessage')}
-              </Text>
-              <Button className="mt-4" style={{ backgroundColor: theme.colors.primary }} onPress={() => setShowNewForm(true)}>
-                <ButtonText className="text-white">{t('planification.createButton')}</ButtonText>
-              </Button>
-            </Center>
+            <EmptyState
+              icon="clipboard-outline"
+              title={t('planification.emptyMessage')}
+              image={require('@/assets/images/bubule-detente.png')}
+              action={<PrimaryButton label={t('planification.createButton')} onPress={() => setShowNewForm(true)} />}
+            />
           )}
-        </VStack>
+        </View>
       </ScrollView>
 
       <ConfirmDialog

@@ -1,31 +1,16 @@
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { View } from 'react-native';
+import { View, Text as RNText, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
-import { Box } from '@/components/ui/box';
-import { VStack } from '@/components/ui/vstack';
-import { HStack } from '@/components/ui/hstack';
-import { Heading } from '@/components/ui/heading';
-import { Text } from '@/components/ui/text';
-import { Button, ButtonText } from '@/components/ui/button';
-import { Input, InputField } from '@/components/ui/input';
-import {
-  FormControl,
-  FormControlLabel,
-  FormControlLabelText,
-  FormControlError,
-  FormControlErrorText,
-} from '@/components/ui/form-control';
 import { useTheme } from '@/contexts';
 import { useCurrency } from '@/stores/settingsStore';
-import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
-import { getDarkModeColors } from '@/constants/darkMode';
-import { formatAmountInput, parseAmount, getNumericValue } from '@/lib/amountInput';
+import { formatAmountInput, getNumericValue } from '@/lib/amountInput';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
+import { PrimaryButton } from '@/components/premium';
 
 export default function BalanceScreen() {
   const router = useRouter();
@@ -33,9 +18,6 @@ export default function BalanceScreen() {
   const { theme } = useTheme();
   const currency = useCurrency();
   const { t } = useTranslation();
-  const effectiveScheme = useEffectiveColorScheme();
-  const isDark = effectiveScheme === 'dark';
-  const colors = getDarkModeColors(isDark);
   const [bankBalance, setBankBalance] = useState('');
   const [cashBalance, setCashBalance] = useState('');
   const [error, setError] = useState('');
@@ -77,7 +59,7 @@ export default function BalanceScreen() {
 
   return (
     <View
-      className="flex-1 bg-background-0"
+      className="flex-1 bg-bg-base"
       style={{ paddingTop: insets.top }}
     >
       <KeyboardAwareScrollView
@@ -86,108 +68,94 @@ export default function BalanceScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
         bottomOffset={20}
       >
-        <Box className="flex-1 p-6">
-          <VStack className="flex-1" space="xl">
-              <ProgressBar step={7} totalSteps={8} />
-              <VStack space="sm">
-                <Heading size="xl" className="text-typography-900">
-                  {t('onboarding.configureAccounts')}
-                </Heading>
-                <Text className="text-typography-600">
-                  {t('onboarding.enterBalances')}
-                </Text>
-              </VStack>
+        <View className="flex-1 p-6">
+          <View className="flex-1 gap-6">
+            <ProgressBar step={7} totalSteps={8} />
+            <View className="gap-3">
+              <RNText className="font-display text-display-xl text-content-primary">
+                {t('onboarding.configureAccounts')}
+              </RNText>
+              <RNText className="font-body-regular text-body-lg text-content-secondary">
+                {t('onboarding.enterBalances')}
+              </RNText>
+            </View>
 
-              <VStack space="lg" className="mt-4">
-                <Box
-                  className="p-4 rounded-xl"
-                  style={{ backgroundColor: isDark ? colors.chipBg : theme.colors.primaryLight }}
-                >
-                  <HStack space="md" className="items-center mb-3">
-                    <Box
-                      className="w-12 h-12 rounded-full items-center justify-center"
-                      style={{ backgroundColor: theme.colors.primary + '20' }}
-                    >
-                      <Ionicons name="card" size={24} color={theme.colors.primary} />
-                    </Box>
-                    <VStack>
-                      <Text className="font-semibold text-typography-900">{t('account.bank')}</Text>
-                      <Text className="text-xs text-typography-500">{t('onboarding.bankAccount')}</Text>
-                    </VStack>
-                  </HStack>
+            <View className="gap-4 mt-4">
+              <View className="p-4 rounded-xl bg-bg-surface">
+                <View className="flex-row gap-3 items-center mb-3">
+                  <View
+                    className="w-12 h-12 rounded-full items-center justify-center"
+                    style={{ backgroundColor: theme.colors.primary + '20' }}
+                  >
+                    <Ionicons name="card" size={24} color={theme.colors.primary} />
+                  </View>
+                  <View>
+                    <RNText className="font-ui text-ui-md text-content-primary">{t('account.bank')}</RNText>
+                    <RNText className="text-body-sm text-content-tertiary">{t('onboarding.bankAccount')}</RNText>
+                  </View>
+                </View>
 
-                  <FormControl>
-                    <FormControlLabel>
-                      <FormControlLabelText>{t('onboarding.balanceInBank')} ({currency.code})</FormControlLabelText>
-                    </FormControlLabel>
-                    <Input size="xl" className="mt-2">
-                      <InputField
-                        placeholder="0"
-                        keyboardType="decimal-pad"
-                        value={bankBalance}
-                        onChangeText={handleBankChange}
-                        className="text-xl"
-                      />
-                    </Input>
-                  </FormControl>
-                </Box>
+                <RNText className="font-ui text-ui-md text-content-primary mb-2">
+                  {t('onboarding.balanceInBank')} ({currency.code})
+                </RNText>
+                <View className="rounded-xl bg-bg-raised px-4 py-3">
+                  <TextInput
+                    className="font-body-regular text-body-lg text-content-primary"
+                    placeholder="0"
+                    placeholderTextColor="#6E6E7D"
+                    keyboardType="decimal-pad"
+                    value={bankBalance}
+                    onChangeText={handleBankChange}
+                  />
+                </View>
+              </View>
 
-                <Box
-                  className="p-4 rounded-xl"
-                  style={{ backgroundColor: isDark ? colors.chipBg : theme.colors.secondaryLight }}
-                >
-                  <HStack space="md" className="items-center mb-3">
-                    <Box
-                      className="w-12 h-12 rounded-full items-center justify-center"
-                      style={{ backgroundColor: theme.colors.secondaryLight }}
-                    >
-                      <Ionicons name="cash" size={24} color={theme.colors.secondary} />
-                    </Box>
-                    <VStack>
-                      <Text className="font-semibold text-typography-900">{t('account.cash')}</Text>
-                      <Text className="text-xs text-typography-500">{t('onboarding.cashAccount')}</Text>
-                    </VStack>
-                  </HStack>
+              <View className="p-4 rounded-xl bg-bg-surface">
+                <View className="flex-row gap-3 items-center mb-3">
+                  <View
+                    className="w-12 h-12 rounded-full items-center justify-center"
+                    style={{ backgroundColor: theme.colors.secondary + '20' }}
+                  >
+                    <Ionicons name="cash" size={24} color={theme.colors.secondary} />
+                  </View>
+                  <View>
+                    <RNText className="font-ui text-ui-md text-content-primary">{t('account.cash')}</RNText>
+                    <RNText className="text-body-sm text-content-tertiary">{t('onboarding.cashAccount')}</RNText>
+                  </View>
+                </View>
 
-                  <FormControl>
-                    <FormControlLabel>
-                      <FormControlLabelText>{t('onboarding.balanceInCash')} ({currency.code})</FormControlLabelText>
-                    </FormControlLabel>
-                    <Input size="xl" className="mt-2">
-                      <InputField
-                        placeholder="0"
-                        keyboardType="decimal-pad"
-                        value={cashBalance}
-                        onChangeText={handleCashChange}
-                        className="text-xl"
-                      />
-                    </Input>
-                  </FormControl>
-                </Box>
-              </VStack>
+                <RNText className="font-ui text-ui-md text-content-primary mb-2">
+                  {t('onboarding.balanceInCash')} ({currency.code})
+                </RNText>
+                <View className="rounded-xl bg-bg-raised px-4 py-3">
+                  <TextInput
+                    className="font-body-regular text-body-lg text-content-primary"
+                    placeholder="0"
+                    placeholderTextColor="#6E6E7D"
+                    keyboardType="decimal-pad"
+                    value={cashBalance}
+                    onChangeText={handleCashChange}
+                  />
+                </View>
+              </View>
+            </View>
 
-              {error && (
-                <FormControl isInvalid>
-                  <FormControlError>
-                    <FormControlErrorText>{error}</FormControlErrorText>
-                  </FormControlError>
-                </FormControl>
-              )}
+            {error && (
+              <RNText className="text-error text-body-sm">
+                {error}
+              </RNText>
+            )}
 
-            <Text className="text-center text-typography-400 text-sm">
+            <RNText className="text-center text-content-tertiary text-body-sm">
               {t('onboarding.balanceChangeHint')}
-            </Text>
+            </RNText>
 
-            <Button
-              size="xl"
-              className="w-full mt-4"
-              style={{ backgroundColor: theme.colors.primary }}
+            <PrimaryButton
+              label={t('onboarding.next')}
               onPress={handleNext}
-            >
-              <ButtonText className="text-white">{t('onboarding.next')}</ButtonText>
-            </Button>
-          </VStack>
-        </Box>
+            />
+          </View>
+        </View>
       </KeyboardAwareScrollView>
     </View>
   );

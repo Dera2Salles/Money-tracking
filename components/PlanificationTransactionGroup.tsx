@@ -1,11 +1,7 @@
-import { Pressable } from 'react-native';
+import { Pressable, View, Text as RNText } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
-import { Box } from '@/components/ui/box';
-import { HStack } from '@/components/ui/hstack';
-import { VStack } from '@/components/ui/vstack';
-import { Text } from '@/components/ui/text';
 import { formatCurrency } from '@/lib/currency';
 import { useCurrencyCode } from '@/stores/settingsStore';
 import { useTheme } from '@/contexts';
@@ -28,10 +24,6 @@ export function PlanificationTransactionGroup({ group, onLongPress }: Planificat
   const { theme } = useTheme();
   const router = useRouter();
 
-  const totalAmount = group.transactions.reduce((sum, tx) => {
-    return tx.type === 'expense' ? sum + tx.amount : sum - tx.amount;
-  }, 0);
-
   const expenseCount = group.transactions.filter((tx) => tx.type === 'expense').length;
   const incomeCount = group.transactions.filter((tx) => tx.type === 'income').length;
 
@@ -45,43 +37,43 @@ export function PlanificationTransactionGroup({ group, onLongPress }: Planificat
       onPress={() => router.push(`/planification/${group.planification_id}`)}
       onLongPress={onLongPress}
     >
-      <Box className="bg-background-0 p-4 rounded-xl border border-outline-100">
-        <HStack space="md" className="items-center">
-          <Box
+      <View className="bg-bg-surface p-4 rounded-xl">
+        <View className="flex-row items-center gap-3">
+          <View
             className="w-12 h-12 rounded-full items-center justify-center"
             style={{ backgroundColor: theme.colors.primary + '20' }}
           >
             <Ionicons name="layers" size={24} color={theme.colors.primary} />
-          </Box>
+          </View>
 
-          <VStack className="flex-1" space="xs">
-            <Text className="font-semibold text-typography-900" numberOfLines={1}>
+          <View className="flex-1">
+            <RNText className="font-semibold text-content-primary" numberOfLines={1}>
               {group.planification_title}
-            </Text>
-            <Text className="text-typography-500 text-sm">
+            </RNText>
+            <RNText className="text-sm" style={{ color: '#8E8EA0' }}>
               {t('planification.transactionCount', { count: group.transactions.length })}
-            </Text>
+            </RNText>
             {group.transactions.length > 0 && (
-              <Text className="text-typography-400 text-xs">
+              <RNText className="text-xs" style={{ color: '#6E6E7D' }}>
                 {formatTime(group.transactions[0].created_at)}
-              </Text>
+              </RNText>
             )}
-          </VStack>
+          </View>
 
-          <VStack className="items-end" space="xs">
+          <View className="items-end gap-1">
             {expenseCount > 0 && (
-              <Text className="font-bold text-error-600">
+              <RNText className="font-bold" style={{ color: '#EF4444' }}>
                 -{formatCurrency(group.transactions.filter((tx) => tx.type === 'expense').reduce((s, tx) => s + tx.amount, 0), currencyCode)}
-              </Text>
+              </RNText>
             )}
             {incomeCount > 0 && (
-              <Text className="font-bold text-success-600">
+              <RNText className="font-bold" style={{ color: '#22C55E' }}>
                 +{formatCurrency(group.transactions.filter((tx) => tx.type === 'income').reduce((s, tx) => s + tx.amount, 0), currencyCode)}
-              </Text>
+              </RNText>
             )}
-          </VStack>
-        </HStack>
-      </Box>
+          </View>
+        </View>
+      </View>
     </Pressable>
   );
 }

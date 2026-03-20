@@ -1,15 +1,9 @@
 import { useState } from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, View, TextInput } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useTranslation } from 'react-i18next';
+import { Text as RNText } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Box } from '@/components/ui/box';
-import { HStack } from '@/components/ui/hstack';
-import { VStack } from '@/components/ui/vstack';
-import { Text } from '@/components/ui/text';
-import { Heading } from '@/components/ui/heading';
-import { Button, ButtonText } from '@/components/ui/button';
-import { Input, InputField } from '@/components/ui/input';
 import {
   AlertDialog,
   AlertDialogBackdrop,
@@ -22,8 +16,8 @@ import { useTheme } from '@/contexts';
 import { useCurrency } from '@/stores/settingsStore';
 import { formatAmountInput, parseAmount } from '@/lib/amountInput';
 import type { AccountType } from '@/types';
-import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
-import { getDarkModeColors } from '@/constants/darkMode';
+import { GhostButton, PrimaryButton } from '@/components/premium';
+import { cn } from '@/lib/utils';
 
 const ACCOUNT_ICONS = [
   { icon: 'card', label: 'Carte' },
@@ -59,9 +53,6 @@ export function AddAccountModal({
   const { theme } = useTheme();
   const currency = useCurrency();
   const { t } = useTranslation();
-  const effectiveScheme = useEffectiveColorScheme();
-  const isDark = effectiveScheme === 'dark';
-  const colors = getDarkModeColors(isDark);
   const [name, setName] = useState('');
   const [type, setType] = useState<AccountType>('bank');
   const [icon, setIcon] = useState('wallet');
@@ -100,28 +91,22 @@ export function AddAccountModal({
         <AlertDialogBackdrop />
         <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
-            <HStack space="sm" className="items-center">
-              <Box
-                className="w-10 h-10 rounded-full items-center justify-center"
-                style={{ backgroundColor: isDark ? '#450A0A' : '#FEE2E2' }}
+            <View className="flex-row items-center gap-3">
+              <View
+                className="w-10 h-10 rounded-full items-center justify-center bg-error/10"
               >
                 <Ionicons name="alert-circle" size={24} color="#EF4444" />
-              </Box>
-              <Heading size="md" className="text-typography-900">{t('account.limitReached')}</Heading>
-            </HStack>
+              </View>
+              <RNText className="font-display text-display-md text-content-primary">{t('account.limitReached')}</RNText>
+            </View>
           </AlertDialogHeader>
           <AlertDialogBody className="mt-3 mb-4">
-            <Text className="text-typography-600">
+            <RNText className="text-body-md text-content-secondary">
               {t('account.limitMessage', { max: maxCustomAccounts })}
-            </Text>
+            </RNText>
           </AlertDialogBody>
           <AlertDialogFooter>
-            <Button
-              style={{ backgroundColor: theme.colors.primary }}
-              onPress={handleClose}
-            >
-              <ButtonText className="text-white">{t('common.understood')}</ButtonText>
-            </Button>
+            <PrimaryButton label={t('common.understood')} onPress={handleClose} compact />
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -133,12 +118,12 @@ export function AddAccountModal({
       <AlertDialogBackdrop />
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
-          <HStack className="items-center justify-between w-full">
-            <Heading size="md" className="text-typography-900">{t('account.new')}</Heading>
-            <Text className="text-typography-500 text-sm">
+          <View className="flex-row items-center justify-between w-full gap-3">
+            <RNText className="font-display text-display-md text-content-primary">{t('account.new')}</RNText>
+            <RNText className="text-body-sm text-content-tertiary">
               {t('account.customCount', { count: customAccountsCount, max: maxCustomAccounts })}
-            </Text>
-          </HStack>
+            </RNText>
+          </View>
         </AlertDialogHeader>
         <AlertDialogBody className="mt-3 mb-4">
           <KeyboardAwareScrollView
@@ -147,118 +132,108 @@ export function AddAccountModal({
             bottomOffset={20}
             style={{ maxHeight: 400 }}
           >
-          <VStack space="lg">
-            <VStack space="sm">
-              <Text className="text-typography-700 font-medium">{t('account.name')}</Text>
-              <Input size="md">
-                <InputField
+          <View className="gap-4">
+            <View className="gap-2">
+              <RNText className="text-body-md font-body-bold text-content-primary">{t('account.name')}</RNText>
+              <View className="rounded-xl bg-bg-raised px-4 py-3">
+                <TextInput
                   placeholder={t('account.namePlaceholder')}
+                  placeholderTextColor="#8E8EA0"
                   value={name}
                   onChangeText={setName}
                   maxLength={20}
+                  className="font-body-regular text-body-md text-content-primary"
                 />
-              </Input>
-              <Text className="text-typography-400 text-xs text-right">{t('common.characters', { current: name.length, max: 20 })}</Text>
-            </VStack>
+              </View>
+              <RNText className="text-body-xs text-content-tertiary text-right">{t('common.characters', { current: name.length, max: 20 })}</RNText>
+            </View>
 
-            <VStack space="sm">
-              <Text className="text-typography-700 font-medium">{t('account.type')}</Text>
-              <HStack space="md">
+            <View className="gap-2">
+              <RNText className="text-body-md font-body-bold text-content-primary">{t('account.type')}</RNText>
+              <View className="flex-row gap-3">
                 <Pressable onPress={() => setType('bank')} className="flex-1">
-                  <Box
-                    className="p-3 rounded-xl border-2 items-center"
-                    style={{
-                      borderColor: type === 'bank' ? theme.colors.primary : colors.cardBorder,
-                      backgroundColor: type === 'bank' ? theme.colors.primaryLight : colors.cardBg,
-                    }}
+                  <View
+                    className={cn('p-3 rounded-xl items-center', type !== 'bank' && 'bg-bg-raised')}
+                    style={type === 'bank' ? { backgroundColor: theme.colors.primaryLight } : undefined}
                   >
                     <Ionicons
                       name="card"
                       size={24}
-                      color={type === 'bank' ? theme.colors.primary : colors.textMuted}
+                      color={type === 'bank' ? theme.colors.primary : '#8E8EA0'}
                     />
-                    <Text
-                      className="text-xs mt-1"
-                      style={{ color: type === 'bank' ? theme.colors.primary : colors.textMuted }}
+                    <RNText
+                      className="text-body-xs mt-1"
+                      style={{ color: type === 'bank' ? theme.colors.primary : '#8E8EA0' }}
                     >
                       {t('account.bank')}
-                    </Text>
-                  </Box>
+                    </RNText>
+                  </View>
                 </Pressable>
                 <Pressable onPress={() => setType('cash')} className="flex-1">
-                  <Box
-                    className="p-3 rounded-xl border-2 items-center"
-                    style={{
-                      borderColor: type === 'cash' ? theme.colors.secondary : colors.cardBorder,
-                      backgroundColor: type === 'cash' ? theme.colors.secondaryLight : colors.cardBg,
-                    }}
+                  <View
+                    className={cn('p-3 rounded-xl items-center', type !== 'cash' && 'bg-bg-raised')}
+                    style={type === 'cash' ? { backgroundColor: theme.colors.secondaryLight } : undefined}
                   >
                     <Ionicons
                       name="cash"
                       size={24}
-                      color={type === 'cash' ? theme.colors.secondary : colors.textMuted}
+                      color={type === 'cash' ? theme.colors.secondary : '#8E8EA0'}
                     />
-                    <Text
-                      className="text-xs mt-1"
-                      style={{ color: type === 'cash' ? theme.colors.secondary : colors.textMuted }}
+                    <RNText
+                      className="text-body-xs mt-1"
+                      style={{ color: type === 'cash' ? theme.colors.secondary : '#8E8EA0' }}
                     >
                       {t('account.cash')}
-                    </Text>
-                  </Box>
+                    </RNText>
+                  </View>
                 </Pressable>
-              </HStack>
-            </VStack>
+              </View>
+            </View>
 
-            <VStack space="sm">
-              <Text className="text-typography-700 font-medium">{t('account.icon')}</Text>
-              <HStack space="sm" className="flex-wrap">
+            <View className="gap-2">
+              <RNText className="text-body-md font-body-bold text-content-primary">{t('account.icon')}</RNText>
+              <View className="flex-row flex-wrap gap-2">
                 {ACCOUNT_ICONS.map((item) => (
                   <Pressable key={item.icon} onPress={() => setIcon(item.icon)}>
-                    <Box
-                      className="w-12 h-12 rounded-xl border-2 items-center justify-center"
-                      style={{
-                        borderColor: icon === item.icon ? theme.colors.primary : colors.cardBorder,
-                        backgroundColor: icon === item.icon ? theme.colors.primaryLight : colors.cardBg,
-                      }}
+                    <View
+                      className={cn('w-12 h-12 rounded-xl items-center justify-center', icon !== item.icon && 'bg-bg-raised')}
+                      style={icon === item.icon ? { backgroundColor: theme.colors.primaryLight } : undefined}
                     >
                       <Ionicons
                         name={item.icon as keyof typeof Ionicons.glyphMap}
                         size={24}
-                        color={icon === item.icon ? theme.colors.primary : colors.textMuted}
+                        color={icon === item.icon ? theme.colors.primary : '#8E8EA0'}
                       />
-                    </Box>
+                    </View>
                   </Pressable>
                 ))}
-              </HStack>
-            </VStack>
+              </View>
+            </View>
 
-            <VStack space="sm">
-              <Text className="text-typography-700 font-medium">{t('account.initialBalance', { currency: currency.code })}</Text>
-              <Input size="md">
-                <InputField
+            <View className="gap-2">
+              <RNText className="text-body-md font-body-bold text-content-primary">{t('account.initialBalance', { currency: currency.code })}</RNText>
+              <View className="rounded-xl bg-bg-raised px-4 py-3">
+                <TextInput
                   placeholder="0"
+                  placeholderTextColor="#8E8EA0"
                   keyboardType="decimal-pad"
                   value={balance}
                   onChangeText={(text) => setBalance(formatAmountInput(text))}
+                  className="font-body-regular text-body-md text-content-primary"
                 />
-              </Input>
-            </VStack>
-          </VStack>
+              </View>
+            </View>
+          </View>
           </KeyboardAwareScrollView>
         </AlertDialogBody>
         <AlertDialogFooter>
-          <Button variant="outline" onPress={handleClose} isDisabled={isCreating}>
-            <ButtonText>{t('common.cancel')}</ButtonText>
-          </Button>
-          <Button
-            style={{ backgroundColor: theme.colors.primary }}
+          <GhostButton label={t('common.cancel')} onPress={handleClose} disabled={isCreating} compact />
+          <PrimaryButton
+            label={isCreating ? t('account.creating') : t('account.create')}
             onPress={handleCreate}
-            isDisabled={!name.trim() || isCreating}
-          >
-            <ButtonText className="text-white">
-              {isCreating ? t('account.creating') : t('account.create')}
-            </ButtonText>
-          </Button>
+            disabled={!name.trim() || isCreating}
+            compact
+          />
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

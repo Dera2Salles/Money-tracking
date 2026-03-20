@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, Text as RNText } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -11,18 +11,14 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { Image } from 'expo-image';
+import { EaseView } from 'react-native-ease';
 import { Ionicons } from '@expo/vector-icons';
-import { Box } from '@/components/ui/box';
-import { VStack } from '@/components/ui/vstack';
-import { HStack } from '@/components/ui/hstack';
-import { Heading } from '@/components/ui/heading';
-import { Text } from '@/components/ui/text';
-import { Button, ButtonText } from '@/components/ui/button';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
+import { SpeechBubble } from '@/components/onboarding/SpeechBubble';
 import { useOnboardingQuiz } from '@/contexts/OnboardingQuizContext';
 import { useTheme } from '@/contexts';
-import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
-import { getDarkModeColors } from '@/constants/darkMode';
+import { PrimaryButton } from '@/components/premium';
 
 interface BenefitTileProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -53,22 +49,18 @@ function BenefitTile({ icon, titleKey, descKey, index, color, cardBg }: BenefitT
 
   return (
     <Animated.View style={animatedStyle}>
-      <HStack
-        className="p-4 rounded-2xl"
-        style={{ backgroundColor: cardBg }}
-        space="md"
-      >
-        <Box
+      <View className="p-4 rounded-xl bg-bg-surface flex-row gap-3" style={{ backgroundColor: cardBg }}>
+        <View
           className="w-12 h-12 rounded-full items-center justify-center"
           style={{ backgroundColor: color + '20' }}
         >
           <Ionicons name={icon} size={24} color={color} />
-        </Box>
-        <VStack className="flex-1" space="xs">
-          <Text className="font-bold text-typography-900">{t(titleKey)}</Text>
-          <Text className="text-sm text-typography-600">{t(descKey)}</Text>
-        </VStack>
-      </HStack>
+        </View>
+        <View className="flex-1 gap-1">
+          <RNText className="font-ui text-content-primary">{t(titleKey)}</RNText>
+          <RNText className="text-body-sm text-content-secondary">{t(descKey)}</RNText>
+        </View>
+      </View>
     </Animated.View>
   );
 }
@@ -102,30 +94,38 @@ export default function SolutionScreen() {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const { frustration } = useOnboardingQuiz();
-  const effectiveScheme = useEffectiveColorScheme();
-  const isDark = effectiveScheme === 'dark';
-  const colors = getDarkModeColors(isDark);
 
   const benefits = BENEFIT_MAP[frustration || 'dont_know_where'];
 
   return (
     <View
-      className="flex-1 bg-background-0"
+      className="flex-1 bg-bg-base"
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
     >
-      <Box className="flex-1 p-6">
+      <View className="flex-1 p-6">
         <ProgressBar step={5} totalSteps={8} />
 
-        <VStack space="md" className="mb-8">
-          <Heading size="xl" className="text-typography-900">
+        <View className="gap-3 mb-8">
+          <RNText className="text-display-xl font-display text-content-primary">
             {t('solution.title')}
-          </Heading>
-          <Text className="text-typography-600">
-            {t('solution.subtitle')}
-          </Text>
-        </VStack>
+          </RNText>
+        </View>
 
-        <VStack space="md" className="flex-1">
+        <EaseView
+          className="items-center mb-4"
+          initialAnimate={{ opacity: 0, translateY: 30 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: 'timing', duration: 400, easing: 'easeOut' }}
+        >
+          <SpeechBubble text={t('solution.subtitle')} />
+          <Image
+            source={require('@/assets/images/bubule-help.png')}
+            style={{ width: 260, height: 260, alignSelf: 'center' }}
+            contentFit="contain"
+          />
+        </EaseView>
+
+        <View className="gap-3 flex-1">
           {benefits.map((benefit, index) => (
             <BenefitTile
               key={benefit.titleKey}
@@ -134,23 +134,19 @@ export default function SolutionScreen() {
               descKey={benefit.descKey}
               index={index}
               color={theme.colors.primary}
-              cardBg={colors.chipBg}
+              cardBg="transparent"
             />
           ))}
-        </VStack>
+        </View>
 
-        <Button
-          size="xl"
-          className="w-full"
-          style={{ backgroundColor: theme.colors.primary }}
+        <PrimaryButton
+          label={t('solution.cta')}
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             router.push('/onboarding/wow');
           }}
-        >
-          <ButtonText className="text-white">{t('solution.cta')}</ButtonText>
-        </Button>
-      </Box>
+        />
+      </View>
     </View>
   );
 }
