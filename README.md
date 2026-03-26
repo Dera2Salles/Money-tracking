@@ -9,7 +9,7 @@ Mitsitsy is a personal finance app built with React Native and Expo. Track your 
 - Expense charts and reports by category
 - Budget planning and simulations
 - Gamification system (XP, levels, streaks, badges)
-- Multi-language support (French, English, Malagasy)
+- Multi-language support (French, English)
 - Dark mode and multiple color themes
 - Scheduled/recurring transactions (planifications)
 - In-app notifications and tips
