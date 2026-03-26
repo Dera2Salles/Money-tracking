@@ -42,4 +42,3 @@ Mitsitsy is a personal finance app built with React Native and Expo. Track your 
 - [Privacy Policy](https://www.mitsitsy.app/privacy)
 - [Terms of Service](https://www.mitsitsy.app/terms)
 - [Google Play](https://play.google.com/store/apps/details?id=com.rdh36.moneytracking)
-- [App Store](https://apps.apple.com/app/mitsitsy/id6741430461)
