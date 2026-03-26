@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { View, ScrollView, Pressable, RefreshControl, Text as RNText } from 'react-native';
+import { View, ScrollView, Pressable, RefreshControl, Text as RNText, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -127,7 +127,10 @@ export default function DashboardScreen() {
         <View className="p-6 gap-6">
           <FadeIn>
             <View className="flex-row justify-between items-center">
-              <RNText className="font-display text-display-md text-content-primary">{t('dashboard.title')}</RNText>
+              <View className="flex-row items-center gap-0.5">
+                <Image source={require('@/assets/images/logo.png')} className="w-10 h-10" resizeMode="contain" />
+                <RNText className="font-display text-display-md text-content-primary font-bold">Mitsitsy</RNText>
+              </View>
               <Pressable onPress={() => router.push('/whats-new')} hitSlop={8} className="p-2">
                 <View>
                   <Ionicons name="notifications-outline" size={24} color={isDark ? '#A0A0B0' : '#6E6E7D'} />

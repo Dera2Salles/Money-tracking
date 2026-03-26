@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
-import { View, Dimensions, Text as RNText } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTranslation } from 'react-i18next';
+import { useEffect, useState } from "react";
+import { View, Dimensions, Text as RNText, ScrollView } from "react-native";
+import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -11,16 +11,16 @@ import Animated, {
   withSequence,
   withRepeat,
   Easing,
-} from 'react-native-reanimated';
-import * as Haptics from 'expo-haptics';
-import { Image } from 'expo-image';
-import { ProgressBar } from '@/components/onboarding/ProgressBar';
-import { SpeechBubble } from '@/components/onboarding/SpeechBubble';
-import { useOnboardingQuiz } from '@/contexts/OnboardingQuizContext';
-import { useTheme } from '@/contexts';
-import { PrimaryButton } from '@/components/premium';
+} from "react-native-reanimated";
+import * as Haptics from "expo-haptics";
+import { Image } from "expo-image";
+import { ProgressBar } from "@/components/onboarding/ProgressBar";
+import { SpeechBubble } from "@/components/onboarding/SpeechBubble";
+import { useOnboardingQuiz } from "@/contexts/OnboardingQuizContext";
+import { useTheme } from "@/contexts";
+import { PrimaryButton } from "@/components/premium";
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const CIRCLE_MAX = Math.max(SCREEN_WIDTH, SCREEN_HEIGHT) * 1.5;
 
 export default function EmpathyScreen() {
@@ -44,10 +44,10 @@ export default function EmpathyScreen() {
     pulseScale.value = withRepeat(
       withSequence(
         withTiming(1.1, { duration: 600 }),
-        withTiming(1, { duration: 600 })
+        withTiming(1, { duration: 600 }),
       ),
       3,
-      true
+      true,
     );
 
     const timer = setTimeout(() => {
@@ -63,7 +63,10 @@ export default function EmpathyScreen() {
       // Staggered content entrance
       const fadeIn = (delay: number) => ({
         opacity: withDelay(delay, withTiming(1, { duration: 400 })),
-        y: withDelay(delay, withTiming(0, { duration: 400, easing: Easing.out(Easing.cubic) })),
+        y: withDelay(
+          delay,
+          withTiming(0, { duration: 400, easing: Easing.out(Easing.cubic) }),
+        ),
       });
 
       contentOpacity.value = withDelay(300, withTiming(1, { duration: 400 }));
@@ -120,48 +123,55 @@ export default function EmpathyScreen() {
   }));
 
   const getHeadlineKey = () => {
-    if (!frustration) return 'empathy.headlineDefault';
+    if (!frustration) return "empathy.headlineDefault";
     return `empathy.headline_${frustration}`;
   };
 
   const getPersonalizedMessage = () => {
-    const durationText = duration ? t(`empathy.duration_${duration}`) : '';
-    const goalText = goal ? t(`empathy.goal_${goal}`) : '';
+    const durationText = duration ? t(`empathy.duration_${duration}`) : "";
+    const goalText = goal ? t(`empathy.goal_${goal}`) : "";
 
     if (durationText && goalText) {
-      return t('empathy.personalizedMessage', { duration: durationText, goal: goalText });
+      return t("empathy.personalizedMessage", {
+        duration: durationText,
+        goal: goalText,
+      });
     }
-    return t('empathy.message');
+    return t("empathy.message");
   };
 
   const getStatKey = () => {
-    if (!frustration) return 'empathy.statDefault';
+    if (!frustration) return "empathy.statDefault";
     return `empathy.stat_${frustration}`;
   };
 
   return (
-    <View
+    <ScrollView
       className="flex-1 bg-bg-base"
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
+      contentContainerStyle={{ flexGrow: 1 }}
     >
-      <View className="flex-1 p-6">
+      <View className="flex-1 p-6 relative">
         <ProgressBar step={4} totalSteps={8} />
 
         {analyzing ? (
           <View className="flex-1 justify-center items-center gap-4">
-            <Animated.View style={pulseStyle} className="items-center">
-              <SpeechBubble text={t('empathy.searchSpeech')} />
+            <Animated.View
+              style={[pulseStyle, { position: "relative" }]}
+              className="items-center"
+            >
               <Image
-                source={require('@/assets/images/bubule-search.png')}
-                style={{ width: 260, height: 260, alignSelf: 'center' }}
+                source={require("@/assets/images/bubule-search.png")}
+                style={{ width: 400, height: 400, alignSelf: "center" }}
                 contentFit="contain"
               />
+              <SpeechBubble text={t("empathy.searchSpeech")} />
             </Animated.View>
             <RNText className="text-center text-display-lg font-display text-content-primary">
-              {t('empathy.analyzing')}
+              {t("empathy.analyzing")}
             </RNText>
             <RNText className="text-center text-content-secondary text-body-md">
-              {t('empathy.analyzingSubtitle')}
+              {t("empathy.analyzingSubtitle")}
             </RNText>
           </View>
         ) : (
@@ -171,7 +181,7 @@ export default function EmpathyScreen() {
               <Animated.View
                 style={[
                   circleStyle,
-                  { backgroundColor: theme.colors.primary + '08' },
+                  { backgroundColor: theme.colors.primary + "08" },
                 ]}
               />
             </View>
@@ -188,7 +198,7 @@ export default function EmpathyScreen() {
                 <Animated.View style={line2Style}>
                   <View
                     className="p-5 rounded-xl bg-bg-surface"
-                    style={{ backgroundColor: theme.colors.primary + '15' }}
+                    style={{ backgroundColor: theme.colors.primary + "15" }}
                   >
                     <RNText
                       className="text-center text-body-lg leading-6 font-ui"
@@ -199,16 +209,22 @@ export default function EmpathyScreen() {
                   </View>
                 </Animated.View>
 
-                <Animated.View style={line3Style} className="items-center">
-                  <SpeechBubble text={t('empathy.resultSpeech')} />
+                <Animated.View
+                  style={[line3Style, { position: "relative" }]}
+                  className="items-center"
+                >
                   <Image
-                    source={require('@/assets/images/bubule-motivation.png')}
-                    style={{ width: 260, height: 260, alignSelf: 'center' }}
+                    source={require("@/assets/images/bubule-motivation.png")}
+                    style={{ width: 400, height: 400, alignSelf: "center" }}
                     contentFit="contain"
                   />
+                  <SpeechBubble text={t("empathy.resultSpeech")} />
                 </Animated.View>
 
-                <Animated.View style={line4Style}>
+                <Animated.View
+                  style={line4Style}
+                  className="absolute bottom-14"
+                >
                   <RNText className="text-center text-content-secondary text-body-md leading-6">
                     {getPersonalizedMessage()}
                   </RNText>
@@ -217,10 +233,10 @@ export default function EmpathyScreen() {
 
               <Animated.View style={ctaStyle}>
                 <PrimaryButton
-                  label={t('empathy.cta')}
+                  label={t("empathy.cta")}
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    router.push('/onboarding/solution');
+                    router.push("/onboarding/solution");
                   }}
                 />
               </Animated.View>
@@ -228,6 +244,6 @@ export default function EmpathyScreen() {
           </View>
         )}
       </View>
-    </View>
+    </ScrollView>
   );
 }
