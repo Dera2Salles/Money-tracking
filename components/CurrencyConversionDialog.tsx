@@ -1,4 +1,4 @@
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, View, Text as RNText } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import {
   AlertDialog,
@@ -8,15 +8,9 @@ import {
   AlertDialogBody,
   AlertDialogFooter,
 } from '@/components/ui/alert-dialog';
-import { Heading } from '@/components/ui/heading';
-import { Text } from '@/components/ui/text';
-import { VStack } from '@/components/ui/vstack';
-import { HStack } from '@/components/ui/hstack';
-import { Button, ButtonText } from '@/components/ui/button';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/contexts';
-import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
-import { getDarkModeColors } from '@/constants/darkMode';
+import { GhostButton, PrimaryButton } from '@/components/premium';
 import type { Currency } from '@/constants/currencies';
 
 interface CurrencyConversionDialogProps {
@@ -44,93 +38,78 @@ export function CurrencyConversionDialog({
 }: CurrencyConversionDialogProps) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const effectiveScheme = useEffectiveColorScheme();
-  const colors = getDarkModeColors(effectiveScheme === 'dark');
   const canConvert = !isLoading && !isFetchingRate && !!exchangeRate;
 
   return (
     <AlertDialog isOpen={isOpen} onClose={isLoading ? undefined : onClose}>
       <AlertDialogBackdrop />
-      <AlertDialogContent>
+      <AlertDialogContent className="max-w-sm">
         <AlertDialogHeader>
-          <Heading size="md" className="text-typography-900">
-            {t('currency.conversion')}
-          </Heading>
+          <RNText className="font-display text-display-md text-content-primary">{t('currency.conversion')}</RNText>
         </AlertDialogHeader>
         <AlertDialogBody className="mt-3 mb-4">
-          <VStack space="md">
-            <HStack space="sm" className="items-center">
-              <Ionicons name="wifi" size={20} color={theme.colors.primary} />
-              <Text className="text-typography-700 flex-1">
-                {t('currency.conversionInfo')}
-              </Text>
-            </HStack>
+          <View className="gap-4">
+            <View className="flex-row gap-2 items-center">
+              <Ionicons name="wifi" size={18} color="#A0A0B2" />
+              <RNText className="text-content-secondary text-body-md flex-1">{t('currency.conversionInfo')}</RNText>
+            </View>
 
-            <HStack space="md" className="items-center justify-center py-3">
-              <VStack className="items-center">
-                <Text className="text-2xl font-bold" style={{ color: theme.colors.primary }}>
+            <View className="flex-row items-center justify-center gap-4 py-3">
+              <View className="items-center">
+                <RNText className="font-display text-display-md" style={{ color: theme.colors.primary }}>
                   {fromCurrency.symbol}
-                </Text>
-                <Text className="text-sm text-typography-500">{fromCurrency.code}</Text>
-              </VStack>
-              <Ionicons name="arrow-forward" size={24} color={colors.textMuted} />
-              <VStack className="items-center">
-                <Text className="text-2xl font-bold" style={{ color: theme.colors.primary }}>
+                </RNText>
+                <RNText className="text-body-sm text-content-tertiary">{fromCurrency.code}</RNText>
+              </View>
+              <Ionicons name="arrow-forward" size={24} color="#A0A0B2" />
+              <View className="items-center">
+                <RNText className="font-display text-display-md" style={{ color: theme.colors.primary }}>
                   {toCurrency.symbol}
-                </Text>
-                <Text className="text-sm text-typography-500">{toCurrency.code}</Text>
-              </VStack>
-            </HStack>
+                </RNText>
+                <RNText className="text-body-sm text-content-tertiary">{toCurrency.code}</RNText>
+              </View>
+            </View>
 
             {isFetchingRate ? (
-              <HStack space="sm" className="items-center justify-center py-2">
+              <View className="flex-row gap-2 items-center justify-center py-2">
                 <ActivityIndicator size="small" color={theme.colors.primary} />
-                <Text className="text-typography-500 text-sm">{t('currency.fetchingRate')}</Text>
-              </HStack>
+                <RNText className="text-content-tertiary text-body-sm">{t('currency.fetchingRate')}</RNText>
+              </View>
             ) : exchangeRate ? (
-              <VStack space="xs" className="bg-background-100 p-3 rounded-lg">
-                <Text className="text-typography-700 text-sm text-center font-medium">
+              <View className="bg-bg-raised p-3 rounded-xl gap-1">
+                <RNText className="text-content-secondary text-body-sm text-center font-body-medium">
                   {t('currency.currentRate')}
-                </Text>
-                <Text className="text-typography-900 text-center font-bold">
+                </RNText>
+                <RNText className="text-content-primary text-center font-ui text-ui-md">
                   1 {fromCurrency.code} = {exchangeRate.toFixed(6)} {toCurrency.code}
-                </Text>
-                <Text className="text-typography-500 text-xs text-center mt-1">
+                </RNText>
+                <RNText className="text-content-tertiary text-body-sm text-center mt-1">
                   {t('currency.example')} 100,000 {fromCurrency.code} → {(100000 * exchangeRate).toFixed(2)} {toCurrency.code}
-                </Text>
-              </VStack>
+                </RNText>
+              </View>
             ) : null}
 
-            <Text className="text-typography-500 text-sm text-center">
+            <RNText className="text-content-tertiary text-body-sm text-center">
               {t('currency.convertInfo', { from: fromCurrency.name, to: toCurrency.name })}
-            </Text>
+            </RNText>
 
             {error && (
-              <HStack space="sm" className="items-center bg-error-50 p-3 rounded-lg">
-                <Ionicons name="alert-circle" size={20} color="#DC2626" />
-                <Text className="text-error-700 flex-1 text-sm">{t(error)}</Text>
-              </HStack>
+              <View className="flex-row gap-2 items-center bg-error/10 p-3 rounded-xl">
+                <Ionicons name="alert-circle" size={20} color="#EB5757" />
+                <RNText className="text-error flex-1 text-body-sm">{t(error)}</RNText>
+              </View>
             )}
-          </VStack>
+          </View>
         </AlertDialogBody>
         <AlertDialogFooter>
-          <Button variant="outline" onPress={onClose} disabled={isLoading}>
-            <ButtonText>{t('common.cancel')}</ButtonText>
-          </Button>
-          <Button
-            style={{ backgroundColor: theme.colors.primary }}
+          <GhostButton label={t('common.cancel')} onPress={onClose} disabled={isLoading} compact />
+          <PrimaryButton
+            label={isLoading ? t('currency.converting') : t('currency.convert')}
             onPress={onConfirm}
+            isLoading={isLoading}
             disabled={!canConvert}
-          >
-            {isLoading ? (
-              <HStack space="sm" className="items-center">
-                <ActivityIndicator size="small" color="white" />
-                <ButtonText className="text-white">{t('currency.converting')}</ButtonText>
-              </HStack>
-            ) : (
-              <ButtonText className="text-white">{t('currency.convert')}</ButtonText>
-            )}
-          </Button>
+            compact
+          />
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

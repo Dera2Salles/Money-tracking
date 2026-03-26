@@ -1,36 +1,32 @@
 import { useState, useMemo } from 'react';
-import { ScrollView, Pressable } from 'react-native';
+import { ScrollView, Pressable, View, Text as RNText } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { BarChart, PieChart } from 'react-native-gifted-charts';
 import { usePostHog } from 'posthog-react-native';
-import { Box } from '@/components/ui/box';
-import { VStack } from '@/components/ui/vstack';
-import { HStack } from '@/components/ui/hstack';
-import { Text } from '@/components/ui/text';
-import { Center } from '@/components/ui/center';
 import { PeriodSelector } from '@/components/PeriodSelector';
 import { useTransactions } from '@/hooks';
 import { useTransactionStats, getBarChartData, filterByPeriod } from '@/hooks/useTransactionStats';
 import type { PeriodType } from '@/hooks/useTransactionStats';
 import { useTheme } from '@/contexts';
-import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
-import { getDarkModeColors, SEMANTIC_COLORS } from '@/constants/darkMode';
 import { formatCurrency } from '@/lib/currency';
 import { useCurrencyCode } from '@/stores/settingsStore';
+import { cn } from '@/lib/utils';
+import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { getDarkModeColors } from '@/constants/darkMode';
 
 export default function ReportsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const isDark = useEffectiveColorScheme() === 'dark';
-  const colors = getDarkModeColors(isDark);
   const currencyCode = useCurrencyCode();
   const { transactions } = useTransactions();
   const posthog = usePostHog();
+  const isDark = useEffectiveColorScheme() === 'dark';
+  const colors = getDarkModeColors(isDark);
 
   const [period, setPeriod] = useState<PeriodType>('month');
   const [date, setDate] = useState(new Date());
@@ -40,8 +36,8 @@ export default function ReportsScreen() {
   const barData = useMemo(() => getBarChartData(filtered, period, date), [filtered, period, date]);
 
   const chartBarData = barData.flatMap((b) => [
-    { value: b.expenses / 100, label: b.label, frontColor: SEMANTIC_COLORS.expense, spacing: 2 },
-    { value: b.income / 100, label: '', frontColor: SEMANTIC_COLORS.income, spacing: 12 },
+    { value: b.expenses / 100, label: b.label, frontColor: '#EF4444', spacing: 2 },
+    { value: b.income / 100, label: '', frontColor: '#10B981', spacing: 12 },
   ]);
 
   const pieData = stats.categoryBreakdown.slice(0, 6).map((cat, i) => ({
@@ -57,60 +53,57 @@ export default function ReportsScreen() {
       style={{ flex: 1, paddingTop: insets.top }}
       contentContainerStyle={{ paddingBottom: insets.bottom + 40, paddingHorizontal: 16 }}
     >
-      <HStack className="items-center mb-4 mt-2">
+      <View className="flex-row items-center mb-4 mt-2">
         <Pressable onPress={() => router.back()} hitSlop={12}>
           <Ionicons name="arrow-back" size={24} color={theme.colors.primary} />
         </Pressable>
-        <Text className="text-xl font-bold text-typography-900 ml-3">{t('reports.title')}</Text>
-      </HStack>
+        <RNText className="font-display text-display-md text-content-primary ml-3">{t('reports.title')}</RNText>
+      </View>
 
-      <VStack space="md">
+      <View className="gap-4">
         <PeriodSelector period={period} date={date} onPeriodChange={(p: any) => { posthog.capture('report_period_changed', { period: p }); setPeriod(p); }} onDateChange={setDate} />
 
-        {/* Summary Cards */}
-        <HStack space="sm">
-          <Box className="flex-1 p-4 rounded-xl" style={{ backgroundColor: isDark ? SEMANTIC_COLORS.expenseLightDark : SEMANTIC_COLORS.expenseLight }}>
-            <Text className="text-sm text-typography-500">{t('reports.expenses')}</Text>
-            <Text className="text-lg font-bold" style={{ color: SEMANTIC_COLORS.expense }}>
+        <View className="flex-row gap-3">
+          <View className="flex-1 p-4 rounded-xl bg-expense-soft">
+            <RNText className="font-ui text-ui-sm" style={{ color: colors.textMuted }}>{t('reports.expenses')}</RNText>
+            <RNText className="font-display text-display-lg" style={{ color: '#EF4444' }}>
               {formatCurrency(stats.totalExpenses, currencyCode)}
-            </Text>
-          </Box>
-          <Box className="flex-1 p-4 rounded-xl" style={{ backgroundColor: isDark ? SEMANTIC_COLORS.incomeLightDark : SEMANTIC_COLORS.incomeLight }}>
-            <Text className="text-sm text-typography-500">{t('reports.income')}</Text>
-            <Text className="text-lg font-bold" style={{ color: SEMANTIC_COLORS.income }}>
+            </RNText>
+          </View>
+          <View className="flex-1 p-4 rounded-xl bg-income-soft">
+            <RNText className="font-ui text-ui-sm" style={{ color: colors.textMuted }}>{t('reports.income')}</RNText>
+            <RNText className="font-display text-display-lg" style={{ color: '#22C55E' }}>
               {formatCurrency(stats.totalIncome, currencyCode)}
-            </Text>
-          </Box>
-        </HStack>
+            </RNText>
+          </View>
+        </View>
 
-        {/* Stats Row */}
-        <HStack space="sm">
-          <Box className="flex-1 p-4 rounded-xl" style={{ backgroundColor: theme.colors.primaryLight }}>
-            <Text className="text-sm text-typography-500">{t('reports.avgPerDay')}</Text>
-            <Text className="text-base font-bold" style={{ color: theme.colors.primary }}>
+        <View className="flex-row gap-3">
+          <View className="flex-1 p-4 rounded-xl" style={{ backgroundColor: theme.colors.primaryLight }}>
+            <RNText className="font-ui text-ui-sm" style={{ color: colors.textMuted }}>{t('reports.avgPerDay')}</RNText>
+            <RNText className="font-ui text-ui-lg" style={{ color: theme.colors.primary }}>
               {formatCurrency(stats.avgPerDay, currencyCode)}
-            </Text>
-          </Box>
-          <Box className="flex-1 p-4 rounded-xl" style={{ backgroundColor: theme.colors.primaryLight }}>
-            <Text className="text-sm text-typography-500">{t('reports.topCategory')}</Text>
-            <Text className="text-base font-bold" style={{ color: theme.colors.primary }} numberOfLines={1}>
+            </RNText>
+          </View>
+          <View className="flex-1 p-4 rounded-xl" style={{ backgroundColor: theme.colors.primaryLight }}>
+            <RNText className="font-ui text-ui-sm" style={{ color: colors.textMuted }}>{t('reports.topCategory')}</RNText>
+            <RNText className="font-ui text-ui-lg" style={{ color: theme.colors.primary }} numberOfLines={1}>
               {stats.topCategory?.name || '-'}
-            </Text>
-          </Box>
-        </HStack>
+            </RNText>
+          </View>
+        </View>
 
         {total === 0 ? (
-          <Center className="py-16">
-            <Text className="text-4xl mb-2">📊</Text>
-            <Text className="text-typography-400">{t('reports.noData')}</Text>
-          </Center>
+          <View className="items-center justify-center py-16">
+            <RNText className="text-4xl mb-2">📊</RNText>
+            <RNText className="text-content-tertiary">{t('reports.noData')}</RNText>
+          </View>
         ) : (
           <>
-            {/* Bar Chart - Trend */}
             {period !== 'day' && chartBarData.length > 0 && (
-              <VStack space="sm">
-                <Text className="text-typography-700 font-semibold">{t('reports.trend')}</Text>
-                <Box key={`${period}-${date.getTime()}`} className="p-3 rounded-xl overflow-hidden" style={{ backgroundColor: colors.cardBg }}>
+              <View className="gap-3">
+                <RNText className="font-ui text-ui-lg" style={{ color: isDark ? '#EDEDF0' : '#14141A' }}>{t('reports.trend')}</RNText>
+                <View key={`${period}-${date.getTime()}`} className="p-3 rounded-xl overflow-hidden" style={{ backgroundColor: colors.cardBg }}>
                   <BarChart
                     data={chartBarData}
                     barWidth={period === 'year' ? 8 : 14}
@@ -125,82 +118,81 @@ export default function ReportsScreen() {
                     height={150}
                     isAnimated
                   />
-                </Box>
-                <HStack space="md" className="justify-center">
-                  <HStack space="xs" className="items-center">
-                    <Box className="w-3 h-3 rounded-full" style={{ backgroundColor: SEMANTIC_COLORS.expense }} />
-                    <Text className="text-xs text-typography-500">{t('reports.expenses')}</Text>
-                  </HStack>
-                  <HStack space="xs" className="items-center">
-                    <Box className="w-3 h-3 rounded-full" style={{ backgroundColor: SEMANTIC_COLORS.income }} />
-                    <Text className="text-xs text-typography-500">{t('reports.income')}</Text>
-                  </HStack>
-                </HStack>
-              </VStack>
+                </View>
+                <View className="flex-row gap-4 justify-center">
+                  <View className="flex-row gap-2 items-center">
+                    <View className="w-3 h-3 rounded-full bg-expense" />
+                    <RNText className="text-ui-sm" style={{ color: colors.textMuted }}>{t('reports.expenses')}</RNText>
+                  </View>
+                  <View className="flex-row gap-2 items-center">
+                    <View className="w-3 h-3 rounded-full bg-income" />
+                    <RNText className="text-ui-sm" style={{ color: colors.textMuted }}>{t('reports.income')}</RNText>
+                  </View>
+                </View>
+              </View>
             )}
 
-            {/* Pie Chart - Categories */}
             {pieData.length > 0 && (
-              <VStack space="sm">
-                <HStack className="items-center justify-between">
-                  <Text className="text-typography-700 font-semibold">{t('reports.categoryBreakdown')}</Text>
-                  <HStack className="rounded-lg overflow-hidden" style={{ backgroundColor: isDark ? '#1F1F1F' : '#F3F4F6' }}>
+              <View className="gap-3">
+                <View className="flex-row items-center justify-between">
+                  <RNText className="font-ui text-ui-lg" style={{ color: isDark ? '#EDEDF0' : '#14141A' }}>{t('reports.categoryBreakdown')}</RNText>
+                  <View className="flex-row rounded-lg overflow-hidden bg-bg-raised">
                     <Pressable
                       onPress={() => setShowAmounts(false)}
                       className="px-3 py-1"
                       style={!showAmounts ? { backgroundColor: theme.colors.primary } : undefined}
                     >
-                      <Text className="text-xs font-semibold" style={{ color: !showAmounts ? '#FFFFFF' : (isDark ? '#999' : '#6B7280') }}>
+                      <RNText className="text-ui-sm font-ui" style={{ color: !showAmounts ? '#FFFFFF' : '#6B7280' }}>
                         %
-                      </Text>
+                      </RNText>
                     </Pressable>
                     <Pressable
                       onPress={() => setShowAmounts(true)}
                       className="px-3 py-1"
                       style={showAmounts ? { backgroundColor: theme.colors.primary } : undefined}
                     >
-                      <Text className="text-xs font-semibold" style={{ color: showAmounts ? '#FFFFFF' : (isDark ? '#999' : '#6B7280') }}>
+                      <RNText className="text-ui-sm font-ui" style={{ color: showAmounts ? '#FFFFFF' : '#6B7280' }}>
                         {currencyCode}
-                      </Text>
+                      </RNText>
                     </Pressable>
-                  </HStack>
-                </HStack>
-                <HStack className="items-center justify-center" space="lg">
+                  </View>
+                </View>
+                <View className="flex-row items-center justify-center gap-4">
                   <PieChart
                     data={pieData}
                     donut
                     radius={65}
                     innerRadius={40}
-                    innerCircleColor={colors.cardBg}
+                    innerCircleColor={isDark ? '#1A1A20' : '#FFFFFF'}
                     centerLabelComponent={() => (
-                      <VStack className="items-center">
-                        <Text className="text-typography-500 text-xs">{t('reports.total')}</Text>
-                        <Text className="text-typography-900 font-bold text-sm">
+                      <View className="items-center justify-center">
+                        <RNText className="text-ui-sm" style={{ color: colors.textMuted }}>{t('reports.total')}</RNText>
+                        <RNText className="font-display text-ui-md" style={{ color: isDark ? '#EDEDF0' : '#14141A' }}>
                           {formatCurrency(stats.totalExpenses, currencyCode)}
-                        </Text>
-                      </VStack>
+                        </RNText>
+                      </View>
                     )}
                   />
-                  <VStack space="xs" className="flex-1">
+                  <View className="flex-1 gap-2">
                     {stats.categoryBreakdown.slice(0, 5).map((cat, i) => (
-                      <HStack key={cat.id || i} className="items-center" space="sm">
-                        <Box className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color || theme.chartColors[i % theme.chartColors.length] }} />
-                        <Text className="text-sm text-typography-600 flex-1" numberOfLines={1}>{cat.name}</Text>
-                        <Text className="text-sm text-typography-500">
+                      <View key={cat.id || i} className="flex-row items-center gap-2">
+                        <View className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color || theme.chartColors[i % theme.chartColors.length] }} />
+                        <RNText className="font-body-regular text-body-sm flex-1" style={{ color: isDark ? '#EDEDF0' : '#14141A' }} numberOfLines={1}>{cat.name}</RNText>
+                        <RNText className="font-ui text-ui-sm" style={{ color: colors.textMuted }}>
                           {showAmounts
                             ? formatCurrency(cat.amount, currencyCode)
                             : `${stats.totalExpenses > 0 ? Math.round((cat.amount / stats.totalExpenses) * 100) : 0}%`
                           }
-                        </Text>
-                      </HStack>
+                        </RNText>
+                      </View>
                     ))}
-                  </VStack>
-                </HStack>
-              </VStack>
+                  </View>
+                </View>
+              </View>
             )}
           </>
         )}
-      </VStack>
+      </View>
     </ScrollView>
   );
 }

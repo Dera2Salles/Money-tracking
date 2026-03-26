@@ -1,14 +1,10 @@
+import { View, Text as RNText } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 import { useTranslation } from 'react-i18next';
-import { Box } from '@/components/ui/box';
-import { VStack } from '@/components/ui/vstack';
-import { HStack } from '@/components/ui/hstack';
-import { Text } from '@/components/ui/text';
 import { useTheme } from '@/contexts';
 import { formatCurrency } from '@/lib/currency';
 import { useCurrencyCode } from '@/stores/settingsStore';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
-import { getDarkModeColors } from '@/constants/darkMode';
 import { DEFAULT_CATEGORIES } from '@/constants/categories';
 
 const DEFAULT_CATEGORY_IDS = DEFAULT_CATEGORIES.map((c) => c.id);
@@ -29,9 +25,7 @@ export function ExpenseChart({ data, title }: ExpenseChartProps) {
   const { t } = useTranslation();
   const { theme } = useTheme();
   const currencyCode = useCurrencyCode();
-  const effectiveScheme = useEffectiveColorScheme();
-  const isDark = effectiveScheme === 'dark';
-  const colors = getDarkModeColors(isDark);
+  const isDark = useEffectiveColorScheme() === 'dark';
 
   const getCategoryName = (item: CategoryData) => {
     if (!item.id) return t('common.noCategory');
@@ -57,43 +51,43 @@ export function ExpenseChart({ data, title }: ExpenseChartProps) {
   }));
 
   return (
-    <VStack space="md">
-      <Text className="text-typography-700 font-semibold">{displayTitle}</Text>
+    <View className="gap-4">
+      <RNText className="font-ui text-ui-lg text-content-primary">{displayTitle}</RNText>
 
-      <HStack className="items-center justify-center" space="lg">
+      <View className="flex-row items-center justify-center gap-4">
         <PieChart
           data={pieData}
           donut
           radius={70}
           innerRadius={45}
-          innerCircleColor={colors.cardBg}
+          innerCircleColor={isDark ? '#1A1A20' : '#FFFFFF'}
           centerLabelComponent={() => (
-            <VStack className="items-center">
-              <Text className="text-typography-500 text-xs">Total</Text>
-              <Text className="text-typography-900 font-bold text-sm">
+            <View className="items-center justify-center">
+              <RNText className="text-content-tertiary text-ui-sm">Total</RNText>
+              <RNText className="font-display text-ui-md text-content-primary">
                 {formatCurrency(total, currencyCode)}
-              </Text>
-            </VStack>
+              </RNText>
+            </View>
           )}
         />
 
-        <VStack space="xs" className="flex-1">
+        <View className="flex-1 gap-2">
           {pieData.slice(0, 5).map((item, index) => (
-            <HStack key={index} className="items-center" space="sm">
-              <Box
+            <View key={index} className="flex-row items-center gap-2">
+              <View
                 className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: item.color }}
               />
-              <Text className="text-typography-600 text-xs flex-1" numberOfLines={1}>
+              <RNText className="font-body-regular text-body-sm text-content-primary flex-1" numberOfLines={1}>
                 {item.label}
-              </Text>
-              <Text className="text-typography-500 text-xs">
+              </RNText>
+              <RNText className="font-ui text-ui-sm text-content-tertiary">
                 {item.text}
-              </Text>
-            </HStack>
+              </RNText>
+            </View>
           ))}
-        </VStack>
-      </HStack>
-    </VStack>
+        </View>
+      </View>
+    </View>
   );
 }

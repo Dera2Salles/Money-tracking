@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { createAlertDialog } from '@gluestack-ui/core/alert-dialog/creator';
 import { tva } from '@gluestack-ui/utils/nativewind-utils';
 import {
@@ -16,6 +16,9 @@ import {
   MotionComponentProps,
 } from '@legendapp/motion';
 import { View, Pressable, ScrollView, ViewStyle } from 'react-native';
+import { useSettingsStore } from '@/stores/settingsStore';
+import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
+import { buildDesignVars } from '@/components/ui/gluestack-ui-provider/config';
 
 const SCOPE = 'ALERT_DIALOG';
 
@@ -61,7 +64,7 @@ const alertDialogStyle = tva({
 });
 
 const alertDialogContentStyle = tva({
-  base: 'bg-background-0 rounded-lg overflow-hidden border border-outline-100 p-6',
+  base: 'bg-bg-overlay rounded-xl overflow-hidden p-6',
   parentVariants: {
     size: {
       xs: 'w-[60%] max-w-[360px]',
@@ -144,8 +147,15 @@ const AlertDialog = React.forwardRef<
 const AlertDialogContent = React.forwardRef<
   React.ComponentRef<typeof UIAccessibleAlertDialog.Content>,
   IAlertDialogContentProps
->(function AlertDialogContent({ className, size, ...props }, ref) {
+>(function AlertDialogContent({ className, size, style, ...props }, ref) {
   const { size: parentSize } = useStyleContext(SCOPE);
+
+  // Re-inject design vars so NativeWind semantic tokens resolve inside overlays.
+  // Gluestack's overlay rendering can break NativeWind CSS variable cascade.
+  const themeId = useSettingsStore((state) => state.themeId);
+  const effectiveScheme = useEffectiveColorScheme();
+  const isDark = effectiveScheme === 'dark';
+  const designVars = useMemo(() => buildDesignVars(themeId, isDark), [themeId, isDark]);
 
   return (
     <UIAccessibleAlertDialog.Content
@@ -173,6 +183,7 @@ const AlertDialogContent = React.forwardRef<
         },
       }}
       {...props}
+      style={[designVars, style]}
       className={alertDialogContentStyle({
         parentVariants: {
           size: parentSize,

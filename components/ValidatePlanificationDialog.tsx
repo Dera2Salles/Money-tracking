@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, View, Text as RNText } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -10,16 +10,10 @@ import {
   AlertDialogBody,
   AlertDialogFooter,
 } from '@/components/ui/alert-dialog';
-import { Box } from '@/components/ui/box';
-import { HStack } from '@/components/ui/hstack';
-import { VStack } from '@/components/ui/vstack';
-import { Heading } from '@/components/ui/heading';
-import { Text } from '@/components/ui/text';
-import { Button, ButtonText } from '@/components/ui/button';
 import { useTheme } from '@/contexts';
 import { useBalanceHidden } from '@/stores/settingsStore';
-import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
-import { getDarkModeColors } from '@/constants/darkMode';
+import { GhostButton, PrimaryButton } from '@/components/premium';
+import { cn } from '@/lib/utils';
 import type { AccountWithBalance, PlanificationWithTotal } from '@/types';
 
 interface ValidatePlanificationDialogProps {
@@ -43,9 +37,6 @@ export function ValidatePlanificationDialog({
   const { theme } = useTheme();
   const balanceHidden = useBalanceHidden();
   const hiddenAmount = '••••••';
-  const effectiveScheme = useEffectiveColorScheme();
-  const isDark = effectiveScheme === 'dark';
-  const colors = getDarkModeColors(isDark);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,25 +70,23 @@ export function ValidatePlanificationDialog({
     return account.name;
   };
 
-  if (!planification) return null;
-
   return (
-    <AlertDialog isOpen={isOpen} onClose={handleClose}>
+    <AlertDialog isOpen={isOpen && !!planification} onClose={handleClose}>
       <AlertDialogBackdrop />
       <AlertDialogContent className="max-w-sm">
         <AlertDialogHeader>
-          <Heading size="md" className="text-typography-900">{t('planification.validate')}</Heading>
+          <RNText className="font-display text-display-md text-content-primary">{t('planification.validate')}</RNText>
         </AlertDialogHeader>
         <AlertDialogBody className="mt-3 mb-4">
-          <VStack space="md">
-            <Text className="text-typography-700">
-              {t('planification.deductFromAccount', { amount: formatMoney(planification.total) })}
-            </Text>
-            <VStack space="sm">
+          <View className="gap-4">
+            <RNText className="text-content-secondary">
+              {t('planification.deductFromAccount', { amount: formatMoney(planification?.total ?? 0) })}
+            </RNText>
+            <View className="gap-2">
               {accounts.map((account) => {
                 const isSelected = selectedAccountId === account.id;
                 const color = getAccountColor(account.type);
-                const hasEnough = account.current_balance >= planification.total;
+                const hasEnough = account.current_balance >= (planification?.total ?? 0);
                 return (
                   <Pressable
                     key={account.id}
@@ -105,55 +94,49 @@ export function ValidatePlanificationDialog({
                     disabled={!hasEnough}
                     style={{ opacity: hasEnough ? 1 : 0.5 }}
                   >
-                    <Box
-                      className="p-3 rounded-xl border-2"
-                      style={{
-                        borderColor: isSelected ? color : colors.cardBorder,
-                        backgroundColor: isSelected ? color + '15' : colors.cardBg,
-                      }}
+                    <View
+                      className={cn('p-3 rounded-xl', !isSelected && 'bg-bg-raised')}
+                      style={isSelected ? { backgroundColor: color + '20' } : undefined}
                     >
-                      <HStack className="justify-between items-center">
-                        <HStack space="sm" className="items-center">
+                      <View className="flex-row justify-between items-center">
+                        <View className="flex-row items-center gap-2">
                           <Ionicons
                             name={account.icon as keyof typeof Ionicons.glyphMap}
                             size={20}
                             color={color}
                           />
-                          <VStack>
-                            <Text className="font-medium text-typography-900">{getAccountName(account)}</Text>
-                            <Text className="text-xs text-typography-500">
+                          <View>
+                            <RNText className="font-medium text-content-primary">{getAccountName(account)}</RNText>
+                            <RNText className="text-xs text-content-tertiary">
                               {balanceHidden ? hiddenAmount : formatMoney(account.current_balance)}
-                            </Text>
-                          </VStack>
-                        </HStack>
+                            </RNText>
+                          </View>
+                        </View>
                         {isSelected && <Ionicons name="checkmark-circle" size={24} color={color} />}
                         {!hasEnough && (
-                          <Text className="text-xs text-error-500">{t('planification.insufficientBalance')}</Text>
+                          <RNText className="text-xs text-error">{t('planification.insufficientBalance')}</RNText>
                         )}
-                      </HStack>
-                    </Box>
+                      </View>
+                    </View>
                   </Pressable>
                 );
               })}
-            </VStack>
+            </View>
             {error && (
-              <Box className="p-3 rounded-xl bg-error-100">
-                <Text className="text-error-700 text-center">{t(error)}</Text>
-              </Box>
+              <View className="p-3 rounded-xl bg-error/10">
+                <RNText className="text-error text-center">{t(error)}</RNText>
+              </View>
             )}
-          </VStack>
+          </View>
         </AlertDialogBody>
         <AlertDialogFooter>
-          <Button variant="outline" onPress={handleClose}>
-            <ButtonText>{t('common.cancel')}</ButtonText>
-          </Button>
-          <Button
-            style={{ backgroundColor: theme.colors.primary }}
+          <GhostButton label={t('common.cancel')} onPress={handleClose} compact />
+          <PrimaryButton
+            label={isLoading ? t('planification.validating') : t('planification.validate')}
             onPress={handleValidate}
-            isDisabled={!selectedAccountId || isLoading}
-          >
-            <ButtonText className="text-white">{isLoading ? t('planification.validating') : t('planification.validate')}</ButtonText>
-          </Button>
+            disabled={!selectedAccountId || isLoading}
+            compact
+          />
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

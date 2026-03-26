@@ -1,11 +1,8 @@
-import { ScrollView } from 'react-native';
+import { View, ScrollView, Pressable, Text as RNText } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { HStack } from '@/components/ui/hstack';
-import { VStack } from '@/components/ui/vstack';
-import { Text } from '@/components/ui/text';
-import { Button, ButtonText } from '@/components/ui/button';
 import { useTheme } from '@/contexts';
+import { cn } from '@/lib/utils';
 import type { AccountWithBalance } from '@/types';
 
 interface TransferFormProps {
@@ -41,61 +38,55 @@ export function TransferForm({
   ) => {
     const color = account.type === 'bank' ? theme.colors.primary : theme.colors.secondary;
     return (
-      <Button
-        key={account.id}
-        size="lg"
-        variant={isSelected ? 'solid' : 'outline'}
-        onPress={onPress}
-        isDisabled={isDisabled}
-        style={isSelected ? { backgroundColor: color, minWidth: 120 } : { minWidth: 120 }}
-      >
-        <HStack space="sm" className="items-center">
-          <Ionicons
-            name={(account.type === 'bank' ? 'card' : 'cash') as keyof typeof Ionicons.glyphMap}
-            size={18}
-            color={isSelected ? 'white' : color}
-          />
-          <ButtonText style={isSelected ? { color: 'white' } : { color }}>
-            {getAccountName(account)}
-          </ButtonText>
-        </HStack>
-      </Button>
+      <Pressable key={account.id} onPress={onPress} disabled={isDisabled} style={{ opacity: isDisabled ? 0.4 : 1 }}>
+        <View
+          className={cn('py-3 px-4 rounded-xl items-center', !isSelected && 'bg-bg-raised')}
+          style={isSelected ? { backgroundColor: color, minWidth: 120 } : { minWidth: 120 }}
+        >
+          <View className="flex-row gap-2 items-center">
+            <Ionicons
+              name={(account.type === 'bank' ? 'card' : 'cash') as keyof typeof Ionicons.glyphMap}
+              size={18}
+              color={isSelected ? 'white' : color}
+            />
+            <RNText className="font-ui text-ui-md" style={{ color: isSelected ? 'white' : color }}>
+              {getAccountName(account)}
+            </RNText>
+          </View>
+        </View>
+      </Pressable>
     );
   };
 
   return (
     <>
-      <VStack space="sm">
-        <Text className="text-typography-700 font-medium">{t('add.from')}</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <HStack space="md">
-            {accounts.map((account) =>
-              renderAccountButton(
-                account,
-                fromAccountId === account.id,
-                toAccountId === account.id,
-                () => onFromChange(fromAccountId === account.id ? null : account.id)
-              )
-            )}
-          </HStack>
+      <View className="gap-2">
+        <RNText className="font-ui text-ui-md text-content-primary">{t('add.from')}</RNText>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+          {accounts.map((account) =>
+            renderAccountButton(
+              account,
+              fromAccountId === account.id,
+              toAccountId === account.id,
+              () => onFromChange(fromAccountId === account.id ? null : account.id)
+            )
+          )}
         </ScrollView>
-      </VStack>
+      </View>
 
-      <VStack space="sm">
-        <Text className="text-typography-700 font-medium">{t('add.to')}</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <HStack space="md">
-            {accounts.map((account) =>
-              renderAccountButton(
-                account,
-                toAccountId === account.id,
-                fromAccountId === account.id,
-                () => onToChange(toAccountId === account.id ? null : account.id)
-              )
-            )}
-          </HStack>
+      <View className="gap-2">
+        <RNText className="font-ui text-ui-md text-content-primary">{t('add.to')}</RNText>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+          {accounts.map((account) =>
+            renderAccountButton(
+              account,
+              toAccountId === account.id,
+              fromAccountId === account.id,
+              () => onToChange(toAccountId === account.id ? null : account.id)
+            )
+          )}
         </ScrollView>
-      </VStack>
+      </View>
     </>
   );
 }

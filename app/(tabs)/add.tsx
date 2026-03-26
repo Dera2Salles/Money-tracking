@@ -1,21 +1,14 @@
 import { useState, useCallback } from 'react';
-import { View, Pressable } from 'react-native';
+import { View, Pressable, Text as RNText, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Box } from '@/components/ui/box';
-import { VStack } from '@/components/ui/vstack';
-import { HStack } from '@/components/ui/hstack';
-import { Heading } from '@/components/ui/heading';
-import { Text } from '@/components/ui/text';
-import { Button, ButtonText } from '@/components/ui/button';
-import { Input, InputField } from '@/components/ui/input';
-import { Center } from '@/components/ui/center';
 import { CategoryPicker } from '@/components/CategoryPicker';
 import { AccountPicker } from '@/components/AccountPicker';
 import { TransferForm } from '@/components/TransferForm';
+import { PrimaryButton, PremiumInput, Divider } from '@/components/premium';
 import { useCategories, useTransactions, useAccounts, useTips, useGamification, useStoreReview, SYSTEM_CATEGORY_INCOME_ID } from '@/hooks';
 import { useTheme } from '@/contexts';
 import { usePostHog } from 'posthog-react-native';
@@ -24,6 +17,7 @@ import { LevelUpModal } from '@/components/LevelUpModal';
 import { XP_VALUES } from '@/constants/badges';
 import { useCurrency } from '@/stores/settingsStore';
 import { formatAmountInput, parseAmount, getNumericValue } from '@/lib/amountInput';
+import { cn } from '@/lib/utils';
 import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
 import { getDarkModeColors } from '@/constants/darkMode';
 import type { TransactionType } from '@/types';
@@ -38,13 +32,12 @@ export default function AddTransactionScreen() {
   const { expenseCategories, incomeCategory, refresh: refreshCategories } = useCategories();
   const { createTransaction, isLoading } = useTransactions();
   const { accounts, refresh: refreshAccounts, createTransfer, formatMoney } = useAccounts();
-  const effectiveScheme = useEffectiveColorScheme();
-  const isDark = effectiveScheme === 'dark';
-  const colors = getDarkModeColors(isDark);
   const { currentTip, showTip } = useTips('add');
   const gamification = useGamification();
   const { incrementAndCheck: checkStoreReview } = useStoreReview();
   const posthog = usePostHog();
+  const isDark = useEffectiveColorScheme() === 'dark';
+  const colors = getDarkModeColors(isDark);
 
   const [mode, setMode] = useState<ScreenMode>('transaction');
   const [type, setType] = useState<TransactionType>('expense');
@@ -159,160 +152,150 @@ export default function AddTransactionScreen() {
   const isValid = mode === 'transaction' ? isValidTransaction : isValidTransfer;
 
   return (
-    <View className="flex-1 bg-background-0" style={{ paddingTop: insets.top }}>
+    <View className="flex-1 bg-bg-base" style={{ paddingTop: insets.top }}>
       <KeyboardAwareScrollView
         className="flex-1"
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ flexGrow: 1 }}
         bottomOffset={20}
       >
-          <Box className="flex-1 p-6 pb-4">
-            <VStack className="flex-1" space="xl">
-              <Heading size="xl" className="text-typography-900">
+          <View className="flex-1 p-6 pb-4">
+            <View className="flex-1 gap-6">
+              <RNText className="font-display text-display-md text-content-primary">
                 {mode === 'transaction' ? t('add.newTransaction') : t('add.transfer')}
-              </Heading>
+              </RNText>
 
-              <VStack>
-                <Box className="bg-background-100 p-1 rounded-xl">
-                  <HStack>
+              <View>
+                <View className="bg-bg-raised p-1 rounded-xl">
+                  <View className="flex-row">
                     <Pressable onPress={() => { setMode('transaction'); setError(null); }} className="flex-1">
-                      <Box
-                        className="py-3 rounded-lg items-center"
-                        style={mode === 'transaction' ? { backgroundColor: theme.colors.primary } : {}}
+                      <View
+                        className={cn('py-3 rounded-lg items-center', mode === 'transaction' ? 'bg-brand' : '')}
                       >
-                        <HStack space="sm" className="items-center">
+                        <View className="flex-row gap-2 items-center">
                           <Ionicons
                             name="receipt-outline"
                             size={18}
-                            color={mode === 'transaction' ? colors.cardBg : colors.textMuted}
+                            color={mode === 'transaction' ? '#FFFFFF' : '#8E8EA0'}
                           />
-                          <Text
-                            className="font-semibold"
-                            style={{ color: mode === 'transaction' ? colors.cardBg : colors.textMuted }}
+                          <RNText
+                            className="font-ui font-semibold"
+                            style={{ color: mode === 'transaction' ? '#FFFFFF' : '#8E8EA0' }}
                           >
                             {t('add.transaction')}
-                          </Text>
-                        </HStack>
-                      </Box>
+                          </RNText>
+                        </View>
+                      </View>
                     </Pressable>
                     <Pressable onPress={() => { setMode('transfer'); setError(null); }} className="flex-1">
-                      <Box
-                        className="py-3 rounded-lg items-center"
-                        style={mode === 'transfer' ? { backgroundColor: theme.colors.secondary } : {}}
+                      <View
+                        className={cn('py-3 rounded-lg items-center', mode === 'transfer' ? 'bg-income' : '')}
                       >
-                        <HStack space="sm" className="items-center">
+                        <View className="flex-row gap-2 items-center">
                           <Ionicons
                             name="swap-horizontal-outline"
                             size={18}
-                            color={mode === 'transfer' ? colors.cardBg : colors.textMuted}
+                            color={mode === 'transfer' ? '#FFFFFF' : '#8E8EA0'}
                           />
-                          <Text
-                            className="font-semibold"
-                            style={{ color: mode === 'transfer' ? colors.cardBg : colors.textMuted }}
+                          <RNText
+                            className="font-ui font-semibold"
+                            style={{ color: mode === 'transfer' ? '#FFFFFF' : '#8E8EA0' }}
                           >
                             {t('add.transfer')}
-                          </Text>
-                        </HStack>
-                      </Box>
+                          </RNText>
+                        </View>
+                      </View>
                     </Pressable>
-                  </HStack>
-                </Box>
+                  </View>
+                </View>
                 {showTip && currentTip && (
-                <HStack className="mt-2 p-3 rounded-xl items-center" style={{ backgroundColor: theme.colors.secondary + '20' }} space="sm">
-                  <Ionicons name="bulb" size={16} color={theme.colors.secondary} />
-                  <Text className="flex-1 text-xs" style={{ color: theme.colors.secondary }}>{t(currentTip)}</Text>
-                </HStack>
+                <View className="mt-2 p-3 rounded-xl flex-row items-center bg-bg-surface gap-2">
+                  <Ionicons name="bulb" size={16} color="#8B5CF6" />
+                  <RNText className="flex-1 text-xs text-brand">{t(currentTip)}</RNText>
+                </View>
               )}
-              </VStack>
+              </View>
 
               {mode === 'transaction' && (
-                <HStack space="sm" className="justify-center">
+                <View className="flex-row gap-2 justify-center">
                   <Pressable onPress={() => setType('expense')} className="flex-1">
-                    <Box
-                      className="py-3 px-4 rounded-xl border-2 items-center"
-                      style={{
-                        borderColor: type === 'expense' ? '#EF4444' : colors.cardBorder,
-                        backgroundColor: type === 'expense' ? (isDark ? '#450A0A' : '#FEF2F2') : colors.cardBg,
-                      }}
+                    <View
+                      className={cn('py-3 px-4 rounded-xl items-center', type === 'expense' ? 'bg-expense-soft' : 'bg-bg-raised')}
                     >
-                      <HStack space="sm" className="items-center">
+                      <View className="flex-row gap-2 items-center">
                         <Ionicons
                           name="arrow-down-circle"
                           size={20}
-                          color={type === 'expense' ? '#EF4444' : colors.textMuted}
+                          color={type === 'expense' ? '#EF4444' : '#8E8EA0'}
                         />
-                        <Text
-                          className="font-semibold"
-                          style={{ color: type === 'expense' ? '#EF4444' : colors.textMuted }}
+                        <RNText
+                          className="font-ui font-semibold"
+                          style={{ color: type === 'expense' ? '#EF4444' : '#8E8EA0' }}
                         >
                           {t('add.expense')}
-                        </Text>
-                      </HStack>
-                    </Box>
+                        </RNText>
+                      </View>
+                    </View>
                   </Pressable>
                   <Pressable onPress={() => setType('income')} className="flex-1">
-                    <Box
-                      className="py-3 px-4 rounded-xl border-2 items-center"
-                      style={{
-                        borderColor: type === 'income' ? '#22C55E' : colors.cardBorder,
-                        backgroundColor: type === 'income' ? (isDark ? '#052E16' : '#F0FDF4') : colors.cardBg,
-                      }}
+                    <View
+                      className={cn('py-3 px-4 rounded-xl items-center', type === 'income' ? 'bg-income-soft' : 'bg-bg-raised')}
                     >
-                      <HStack space="sm" className="items-center">
+                      <View className="flex-row gap-2 items-center">
                         <Ionicons
                           name="arrow-up-circle"
                           size={20}
-                          color={type === 'income' ? '#22C55E' : colors.textMuted}
+                          color={type === 'income' ? '#22C55E' : '#8E8EA0'}
                         />
-                        <Text
-                          className="font-semibold"
-                          style={{ color: type === 'income' ? '#22C55E' : colors.textMuted }}
+                        <RNText
+                          className="font-ui font-semibold"
+                          style={{ color: type === 'income' ? '#22C55E' : '#8E8EA0' }}
                         >
                           {t('add.income')}
-                        </Text>
-                      </HStack>
-                    </Box>
+                        </RNText>
+                      </View>
+                    </View>
                   </Pressable>
-                </HStack>
+                </View>
               )}
 
-              <Center className="py-4">
-                <Text className="text-typography-500 text-sm mb-2">{t('add.amount')} ({currency.code})</Text>
-                <Input size="xl" variant="underlined" className="w-full max-w-[250px]">
-                  <InputField
-                    placeholder="0"
-                    keyboardType="decimal-pad"
-                    value={amount}
-                    onChangeText={(text) => { setAmount(formatAmountInput(text)); setSuccess(false); setError(null); }}
-                    className="text-4xl text-center font-bold"
-                    textAlign="center"
-                  />
-                </Input>
-              </Center>
+              <View className="py-4 items-center">
+                <RNText className="text-ui-sm mb-2" style={{ color: '#8E8EA0' }}>{t('add.amount')} ({currency.code})</RNText>
+                <TextInput
+                  placeholder="0"
+                  keyboardType="decimal-pad"
+                  value={amount}
+                  onChangeText={(text) => { setAmount(formatAmountInput(text)); setSuccess(false); setError(null); }}
+                  className="text-4xl text-center font-display w-full max-w-[250px]"
+                  style={{ color: isDark ? '#EDEDF0' : '#14141A' }}
+                  placeholderTextColor={'#8E8EA0'}
+                />
+                <Divider className="mt-2 w-full max-w-[250px]" />
+              </View>
 
               {mode === 'transaction' ? (
                 <>
-                  <VStack space="sm">
-                    <Text className="text-typography-700 font-medium">{t('add.account')}</Text>
+                  <View className="gap-2">
+                    <RNText className="font-ui text-ui-md" style={{ color: isDark ? '#EDEDF0' : '#14141A' }}>{t('add.account')}</RNText>
                     <AccountPicker accounts={accounts} selectedId={accountId} onSelect={setAccountId} formatMoney={formatMoney} />
-                  </VStack>
+                  </View>
                   {type === 'expense' ? (
-                    <VStack space="sm">
-                      <Text className="text-typography-700 font-medium">{t('add.category')}</Text>
+                    <View className="gap-2">
+                      <RNText className="font-ui text-ui-md" style={{ color: isDark ? '#EDEDF0' : '#14141A' }}>{t('add.category')}</RNText>
                       <CategoryPicker categories={expenseCategories} selectedId={categoryId} onSelect={setCategoryId} />
-                    </VStack>
+                    </View>
                   ) : (
-                    <VStack space="sm">
-                      <Text className="text-typography-700 font-medium">{t('add.category')}</Text>
-                      <Box className="p-3 rounded-xl border-2" style={{ borderColor: '#22C55E', backgroundColor: isDark ? '#052E16' : '#F0FDF4' }}>
-                        <HStack space="md" className="items-center">
-                          <Box className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: incomeCategory?.color || '#22C55E' }}>
+                    <View className="gap-2">
+                      <RNText className="font-ui text-ui-md" style={{ color: isDark ? '#EDEDF0' : '#14141A' }}>{t('add.category')}</RNText>
+                      <View className="p-3 rounded-xl bg-income-soft">
+                        <View className="flex-row gap-3 items-center">
+                          <View className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: incomeCategory?.color || '#22C55E' }}>
                             <Ionicons name={(incomeCategory?.icon as keyof typeof Ionicons.glyphMap) || 'trending-up'} size={20} color="white" />
-                          </Box>
-                          <Text className="font-medium text-typography-900">{t('add.income')}</Text>
-                        </HStack>
-                      </Box>
-                    </VStack>
+                          </View>
+                          <RNText className="font-ui font-medium" style={{ color: isDark ? '#EDEDF0' : '#14141A' }}>{t('add.income')}</RNText>
+                        </View>
+                      </View>
+                    </View>
                   )}
                 </>
               ) : (
@@ -325,43 +308,36 @@ export default function AddTransactionScreen() {
                 />
               )}
 
-              <VStack space="sm">
-                <Text className="text-typography-700 font-medium">{t('add.noteOptional')}</Text>
-                <Input size="lg">
-                  <InputField placeholder={t('add.notePlaceholder')} value={note} onChangeText={setNote} maxLength={20} />
-                </Input>
-                <Text className="text-typography-400 text-xs text-right">{t('common.characters', { current: note.length, max: 20 })}</Text>
-              </VStack>
+              <View className="gap-2">
+                <RNText className="font-ui text-ui-md" style={{ color: isDark ? '#EDEDF0' : '#14141A' }}>{t('add.noteOptional')}</RNText>
+                <PremiumInput placeholder={t('add.notePlaceholder')} value={note} onChangeText={setNote} maxLength={20} />
+                <RNText className="text-ui-xs text-right" style={{ color: colors.textMuted }}>{t('common.characters', { current: note.length, max: 20 })}</RNText>
+              </View>
 
               {success && (
-                <Center className="bg-success-100 p-3 rounded-xl">
-                  <Text className="text-success-700 font-medium">
+                <View className="bg-income-soft p-3 rounded-xl">
+                  <RNText className="text-income font-ui text-center">
                     {mode === 'transaction' ? t('add.transactionSaved') : t('add.transferSaved')}
-                  </Text>
-                </Center>
+                  </RNText>
+                </View>
               )}
 
               {error && (
-                <Center className="bg-error-100 p-3 rounded-xl">
-                  <Text className="text-error-700 font-medium">
+                <View className="bg-error-soft p-3 rounded-xl">
+                  <RNText className="text-error font-ui text-center">
                     {t(error)}
-                  </Text>
-                </Center>
+                  </RNText>
+                </View>
               )}
-            </VStack>
+            </View>
 
-            <Button
-              size="xl"
-              className="w-full mt-4"
-              style={{ backgroundColor: mode === 'transfer' ? theme.colors.secondary : theme.colors.primary }}
+            <PrimaryButton
+              label={isLoading ? t('add.saving') : t('common.save')}
               onPress={handleSave}
-              isDisabled={!isValid || isLoading}
-            >
-              <ButtonText className="text-white font-semibold">
-                {isLoading ? t('add.saving') : t('common.save')}
-              </ButtonText>
-            </Button>
-          </Box>
+              disabled={!isValid || isLoading}
+              isLoading={isLoading}
+            />
+          </View>
       </KeyboardAwareScrollView>
       <XPToast xpAmount={xpToast} onHide={() => setXpToast(null)} />
       <LevelUpModal level={levelUp} onClose={() => setLevelUp(null)} />

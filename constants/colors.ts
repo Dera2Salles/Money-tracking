@@ -1,3 +1,5 @@
+import { getChartColors, THEME_IDS } from './designTokens';
+
 // Types pour les thèmes
 export interface ThemeColors {
   primary: string;
@@ -27,112 +29,112 @@ export interface Theme {
   chartColors: string[];
 }
 
-// Thème 1 - Turquoise (Moderne)
+// ─── Hand-crafted theme palettes ────────────────────────────────────────────
+// Brand colors are designed, not algorithmically generated.
+// Each theme has ONE primary accent — used sparingly on CTA + active states.
+
 const turquoiseTheme: Theme = {
   id: 'turquoise',
   name: 'Turquoise',
   colors: {
-    primary: '#4ECDC4',
-    primaryLight: '#4ECDC420',
+    primary: '#38BDB2',
+    primaryLight: '#38BDB214',
     secondary: '#FF6B6B',
-    secondaryLight: '#FF6B6B20',
+    secondaryLight: '#FF6B6B14',
     accent1: '#45B7D1',
     accent2: '#96CEB4',
     accent3: '#FFEAA7',
     accent4: '#DDA0DD',
     accent5: '#F39C12',
     accent6: '#3498DB',
-    success: '#4ECDC4',
-    error: '#FF6B6B',
-    textPrimary: '#333',
-    textSecondary: '#666',
-    textMuted: '#999',
-    background: '#F5F5F5',
+    success: '#22C55E',
+    error: '#EF4444',
+    textPrimary: '#14141A',
+    textSecondary: '#6B6B78',
+    textMuted: '#9C9CA8',
+    background: '#F8F8FA',
     cardBackground: '#FFFFFF',
-    border: '#E5E5E5',
+    border: '#F0F0F4',
   },
-  chartColors: ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#F39C12', '#3498DB'],
+  chartColors: getChartColors('turquoise'),
 };
 
-// Thème 2 - Bleu (Professionnel)
 const blueTheme: Theme = {
   id: 'blue',
   name: 'Bleu',
   colors: {
-    primary: '#3498DB',
-    primaryLight: '#3498DB20',
+    primary: '#3478F6',
+    primaryLight: '#3478F614',
     secondary: '#F1C40F',
-    secondaryLight: '#F1C40F20',
+    secondaryLight: '#F1C40F14',
     accent1: '#9B59B6',
     accent2: '#1ABC9C',
     accent3: '#F1C40F',
     accent4: '#E67E22',
     accent5: '#34495E',
     accent6: '#2ECC71',
-    success: '#2ECC71',
-    error: '#E74C3C',
-    textPrimary: '#2C3E50',
-    textSecondary: '#7F8C8D',
-    textMuted: '#BDC3C7',
-    background: '#ECF0F1',
+    success: '#22C55E',
+    error: '#EF4444',
+    textPrimary: '#14141A',
+    textSecondary: '#6B6B78',
+    textMuted: '#9C9CA8',
+    background: '#F8F8FA',
     cardBackground: '#FFFFFF',
-    border: '#D5DBDB',
+    border: '#F0F0F4',
   },
-  chartColors: ['#F1C40F', '#3498DB', '#9B59B6', '#1ABC9C', '#E74C3C', '#E67E22', '#34495E', '#2ECC71'],
+  chartColors: getChartColors('blue'),
 };
 
-// Thème 3 - Violet (Élégant)
 const purpleTheme: Theme = {
   id: 'purple',
   name: 'Violet',
   colors: {
-    primary: '#9B59B6',
-    primaryLight: '#9B59B620',
+    primary: '#8B4CC8',
+    primaryLight: '#8B4CC814',
     secondary: '#2ECC71',
-    secondaryLight: '#2ECC7120',
+    secondaryLight: '#2ECC7114',
     accent1: '#3498DB',
     accent2: '#1ABC9C',
     accent3: '#F39C12',
     accent4: '#E91E63',
     accent5: '#00BCD4',
     accent6: '#8BC34A',
-    success: '#27AE60',
-    error: '#E74C3C',
-    textPrimary: '#2C3E50',
-    textSecondary: '#666',
-    textMuted: '#999',
-    background: '#F5F5F5',
+    success: '#22C55E',
+    error: '#EF4444',
+    textPrimary: '#14141A',
+    textSecondary: '#6B6B78',
+    textMuted: '#9C9CA8',
+    background: '#F8F8FA',
     cardBackground: '#FFFFFF',
-    border: '#E5E5E5',
+    border: '#F0F0F4',
   },
-  chartColors: ['#2ECC71', '#9B59B6', '#3498DB', '#1ABC9C', '#F39C12', '#E91E63', '#00BCD4', '#8BC34A'],
+  chartColors: getChartColors('purple'),
 };
 
-// Thème 4 - Orange (Chaleureux)
 const orangeTheme: Theme = {
   id: 'orange',
   name: 'Orange',
   colors: {
-    primary: '#F39C12',
-    primaryLight: '#F39C1220',
+    primary: '#EB8C32',
+    primaryLight: '#EB8C3214',
     secondary: '#1ABC9C',
-    secondaryLight: '#1ABC9C20',
+    secondaryLight: '#1ABC9C14',
     accent1: '#3498DB',
     accent2: '#27AE60',
     accent3: '#9B59B6',
     accent4: '#1ABC9C',
     accent5: '#E91E63',
     accent6: '#00BCD4',
-    success: '#27AE60',
-    error: '#E74C3C',
-    textPrimary: '#333',
-    textSecondary: '#666',
-    textMuted: '#999',
-    background: '#FFF8F0',
+    success: '#22C55E',
+    error: '#EF4444',
+    textPrimary: '#14141A',
+    textSecondary: '#6B6B78',
+    textMuted: '#9C9CA8',
+    background: '#F8F8FA',
     cardBackground: '#FFFFFF',
-    border: '#F5E6D3',
+    border: '#F0F0F4',
   },
-  chartColors: ['#1ABC9C', '#F39C12', '#3498DB', '#27AE60', '#9B59B6', '#E74C3C', '#E91E63', '#00BCD4'],
+  chartColors: getChartColors('orange'),
 };
 
 // Liste des thèmes disponibles

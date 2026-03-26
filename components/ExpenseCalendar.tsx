@@ -1,10 +1,7 @@
-import { Pressable, View } from 'react-native';
+import { Pressable, View, Text as RNText } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Text } from '@/components/ui/text';
-import { HStack } from '@/components/ui/hstack';
 import { useTheme } from '@/contexts';
-import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
-import { getDarkModeColors, SEMANTIC_COLORS } from '@/constants/darkMode';
+import { SEMANTIC_COLORS } from '@/constants/darkMode';
 import { formatCurrency } from '@/lib/currency';
 import { useCurrencyCode } from '@/stores/settingsStore';
 import type { DailyTotal } from '@/hooks/useTransactionStats';
@@ -20,8 +17,6 @@ interface ExpenseCalendarProps {
 export function ExpenseCalendar({ dailyTotals, selectedDay, onSelectDay, year, month }: ExpenseCalendarProps) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const isDark = useEffectiveColorScheme() === 'dark';
-  const colors = getDarkModeColors(isDark);
   const currencyCode = useCurrencyCode();
 
   const dayLabels = [
@@ -58,16 +53,16 @@ export function ExpenseCalendar({ dailyTotals, selectedDay, onSelectDay, year, m
 
   return (
     <View>
-      <HStack className="mb-1">
+      <View className="flex-row mb-1">
         {dayLabels.map((label, i) => (
-          <View key={i} style={{ flex: 1, alignItems: 'center' }}>
-            <Text className="text-xs text-typography-400 font-medium">{label}</Text>
+          <View key={i} className="flex-1 items-center">
+            <RNText className="font-ui text-ui-xs text-content-tertiary">{label}</RNText>
           </View>
         ))}
-      </HStack>
+      </View>
 
       {rows.map((row, rowIdx) => (
-        <HStack key={rowIdx} className="mb-1">
+        <View key={rowIdx} className="flex-row mb-1">
           {row.map((day, colIdx) => {
             if (day === null) {
               return <View key={colIdx} style={{ flex: 1, height: 58 }} />;
@@ -94,34 +89,34 @@ export function ExpenseCalendar({ dailyTotals, selectedDay, onSelectDay, year, m
                   margin: 1,
                 }}
               >
-                <Text
-                  className="text-xs font-semibold"
-                  style={{ color: isSelected ? '#FFF' : isToday ? theme.colors.primary : (isDark ? '#E5E5E5' : '#333') }}
+                <RNText
+                  className="font-body-regular text-body-sm"
+                  style={{ color: isSelected ? '#FFF' : isToday ? theme.colors.primary : '#9CA3AF' }}
                 >
                   {day}
-                </Text>
+                </RNText>
                 {dt && dt.expenses > 0 && (
-                  <Text
+                  <RNText
                     className="text-[8px]"
                     style={{ color: isSelected ? '#FFF' : SEMANTIC_COLORS.expense }}
                     numberOfLines={1}
                   >
                     -{formatCurrency(dt.expenses, currencyCode)}
-                  </Text>
+                  </RNText>
                 )}
                 {dt && dt.income > 0 && (
-                  <Text
+                  <RNText
                     className="text-[8px]"
                     style={{ color: isSelected ? '#FFF' : SEMANTIC_COLORS.income }}
                     numberOfLines={1}
                   >
                     +{formatCurrency(dt.income, currencyCode)}
-                  </Text>
+                  </RNText>
                 )}
               </Pressable>
             );
           })}
-        </HStack>
+        </View>
       ))}
     </View>
   );

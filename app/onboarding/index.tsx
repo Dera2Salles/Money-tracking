@@ -1,9 +1,10 @@
-import { useEffect, useState, useMemo } from 'react';
-import { View, Dimensions } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTranslation } from 'react-i18next';
-import * as Haptics from 'expo-haptics';
+import { useEffect, useState, useMemo } from "react";
+import { View, Dimensions, Text as RNText } from "react-native";
+import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
+import * as Haptics from "expo-haptics";
+import { Image } from "expo-image";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -13,22 +14,22 @@ import Animated, {
   withRepeat,
   withSequence,
   Easing,
-} from 'react-native-reanimated';
-import { Box } from '@/components/ui/box';
-import { VStack } from '@/components/ui/vstack';
-import { Text } from '@/components/ui/text';
-import { Button, ButtonText } from '@/components/ui/button';
-import { useTheme } from '@/contexts';
-import { usePostHog } from 'posthog-react-native';
+} from "react-native-reanimated";
+import { useTheme } from "@/contexts";
+import { SpeechBubble } from "@/components/onboarding/SpeechBubble";
+import { usePostHog } from "posthog-react-native";
+import { PrimaryButton } from "@/components/premium";
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-const FLOATING_EMOJIS = ['💰', '📊', '🎯', '✨', '🏦', '💎'];
-const APP_NAME = 'Mitsitsy';
+const FLOATING_EMOJIS = ["💰", "📊", "🎯", "✨", "🏦", "💎"];
 
 function FloatingParticle({ emoji, index }: { emoji: string; index: number }) {
   const startX = useMemo(() => Math.random() * (SCREEN_WIDTH - 40), []);
-  const startY = useMemo(() => Math.random() * (SCREEN_HEIGHT * 0.6) + SCREEN_HEIGHT * 0.1, []);
+  const startY = useMemo(
+    () => Math.random() * (SCREEN_HEIGHT * 0.6) + SCREEN_HEIGHT * 0.1,
+    [],
+  );
   const floatY = useSharedValue(0);
   const opacity = useSharedValue(0);
 
@@ -38,7 +39,7 @@ function FloatingParticle({ emoji, index }: { emoji: string; index: number }) {
 
     opacity.value = withDelay(
       index * 200 + 200,
-      withTiming(0.15 + Math.random() * 0.1, { duration: 800 })
+      withTiming(0.15 + Math.random() * 0.1, { duration: 800 }),
     );
 
     floatY.value = withDelay(
@@ -46,16 +47,16 @@ function FloatingParticle({ emoji, index }: { emoji: string; index: number }) {
       withRepeat(
         withSequence(
           withTiming(-drift, { duration, easing: Easing.inOut(Easing.sin) }),
-          withTiming(drift, { duration, easing: Easing.inOut(Easing.sin) })
+          withTiming(drift, { duration, easing: Easing.inOut(Easing.sin) }),
         ),
         -1,
-        true
-      )
+        true,
+      ),
     );
   }, []);
 
   const style = useAnimatedStyle(() => ({
-    position: 'absolute',
+    position: "absolute",
     left: startX,
     top: startY,
     opacity: opacity.value,
@@ -64,52 +65,8 @@ function FloatingParticle({ emoji, index }: { emoji: string; index: number }) {
 
   return (
     <Animated.View style={style}>
-      <Text className="text-2xl">{emoji}</Text>
+      <RNText className="text-2xl">{emoji}</RNText>
     </Animated.View>
-  );
-}
-
-function AnimatedLetter({ letter, index, color }: { letter: string; index: number; color: string }) {
-  const scale = useSharedValue(0);
-  const opacity = useSharedValue(0);
-  const translateY = useSharedValue(30);
-
-  useEffect(() => {
-    const delay = 100 + index * 80;
-
-    opacity.value = withDelay(delay, withTiming(1, { duration: 300 }));
-    translateY.value = withDelay(
-      delay,
-      withSpring(0, { damping: 8, stiffness: 120 })
-    );
-    scale.value = withDelay(
-      delay,
-      withSpring(1, { damping: 8, stiffness: 120 })
-    );
-  }, []);
-
-  const letterStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [
-      { translateY: translateY.value },
-      { scale: scale.value },
-    ],
-  }));
-
-  return (
-    <Animated.Text
-      style={[
-        letterStyle,
-        {
-          fontSize: 48,
-          fontWeight: '800',
-          color,
-          letterSpacing: -1,
-        },
-      ]}
-    >
-      {letter}
-    </Animated.Text>
   );
 }
 
@@ -121,6 +78,9 @@ export default function WelcomeScreen() {
   const [ready, setReady] = useState(false);
   const posthog = usePostHog();
 
+  // Logo
+  const logoOpacity = useSharedValue(0);
+  const logoScale = useSharedValue(0.8);
   // Stagger text lines
   const line1Opacity = useSharedValue(0);
   const line1Y = useSharedValue(24);
@@ -133,10 +93,20 @@ export default function WelcomeScreen() {
   useEffect(() => {
     const anim = (delay: number) => ({
       opacity: withDelay(delay, withTiming(1, { duration: 500 })),
-      y: withDelay(delay, withTiming(0, { duration: 500, easing: Easing.out(Easing.cubic) })),
+      y: withDelay(
+        delay,
+        withTiming(0, { duration: 500, easing: Easing.out(Easing.cubic) }),
+      ),
     });
 
-    // Title text appears after name animation finishes (~800ms)
+    // Logo fade + scale in
+    logoOpacity.value = withDelay(100, withTiming(1, { duration: 600 }));
+    logoScale.value = withDelay(
+      100,
+      withSpring(1, { damping: 12, stiffness: 120 }),
+    );
+
+    // Title text appears after logo animation
     const l1 = anim(900);
     line1Opacity.value = l1.opacity;
     line1Y.value = l1.y;
@@ -147,12 +117,19 @@ export default function WelcomeScreen() {
 
     // CTA appears last
     ctaOpacity.value = withDelay(1400, withTiming(1, { duration: 500 }));
-    ctaY.value = withDelay(1400, withSpring(0, { damping: 12, stiffness: 100 }));
+    ctaY.value = withDelay(
+      1400,
+      withSpring(0, { damping: 12, stiffness: 100 }),
+    );
 
     const timer = setTimeout(() => setReady(true), 1400);
     return () => clearTimeout(timer);
   }, []);
 
+  const logoStyle = useAnimatedStyle(() => ({
+    opacity: logoOpacity.value,
+    transform: [{ scale: logoScale.value }],
+  }));
   const line1Style = useAnimatedStyle(() => ({
     opacity: line1Opacity.value,
     transform: [{ translateY: line1Y.value }],
@@ -168,7 +145,7 @@ export default function WelcomeScreen() {
 
   return (
     <View
-      className="flex-1 bg-background-0"
+      className="flex-1 bg-bg-base"
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
     >
       {/* Floating ambient particles */}
@@ -178,52 +155,46 @@ export default function WelcomeScreen() {
         ))}
       </View>
 
-      <Box className="flex-1 p-6 justify-center">
-        <VStack className="items-center" space="xl">
-          {/* App name — letter-by-letter bounce animation */}
-          <View className="flex-row">
-            {APP_NAME.split('').map((letter, i) => (
-              <AnimatedLetter
-                key={i}
-                letter={letter}
-                index={i}
-                color={theme.colors.primary}
-              />
-            ))}
-          </View>
+      <View className="flex-1 p-6 justify-center relative">
+        <View className="items-center">
+          {/* App logo + speech bubble */}
+          <Animated.View style={logoStyle} className="items-center">
+            <SpeechBubble text={t("welcome.speechBubble")} />
+            <Image
+              source={require("@/assets/images/bubble-hello.png")}
+              style={{ width: 500, height: 500, alignSelf: "center" }}
+              contentFit="contain"
+            />
+          </Animated.View>
 
           {/* Staggered text */}
-          <VStack className="items-center" space="sm">
+          <View className="items-center gap-2 absolute bottom-3">
             <Animated.View style={line1Style}>
-              <Text className="text-typography-900 text-center text-xl font-semibold leading-7">
-                {t('welcome.title')}
-              </Text>
+              <RNText className="text-content-primary text-center text-display-md font-display leading-7">
+                {t("welcome.title")}
+              </RNText>
             </Animated.View>
 
             <Animated.View style={line2Style}>
-              <Text className="text-typography-500 text-center text-base mt-2">
-                {t('welcome.subtitle')}
-              </Text>
+              <RNText className="text-content-secondary text-center text-body-lg mt-2">
+                {t("welcome.subtitle")}
+              </RNText>
             </Animated.View>
-          </VStack>
-        </VStack>
-      </Box>
+          </View>
+        </View>
+      </View>
 
       {/* CTA */}
       <Animated.View style={[{ paddingHorizontal: 24 }, ctaStyle]}>
-        <Button
-          size="xl"
-          className="w-full"
-          style={{ backgroundColor: theme.colors.primary }}
+        <PrimaryButton
+          label={t("welcome.cta")}
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            posthog.capture('onboarding_started');
-            router.push('/onboarding/quiz-1');
+            posthog.capture("onboarding_started");
+            router.push("/onboarding/quiz-1");
           }}
-          isDisabled={!ready}
-        >
-          <ButtonText className="text-white">{t('welcome.cta')}</ButtonText>
-        </Button>
+          disabled={!ready}
+        />
       </Animated.View>
     </View>
   );

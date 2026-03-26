@@ -1,12 +1,7 @@
-import { View } from 'react-native';
+import { View, Text as RNText } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { useAnimatedStyle, interpolate, Extrapolation } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
-import { Box } from '@/components/ui/box';
-import { VStack } from '@/components/ui/vstack';
-import { HStack } from '@/components/ui/hstack';
-import { Heading } from '@/components/ui/heading';
-import { Text } from '@/components/ui/text';
 import type { SlideItemProps } from './types';
 
 export function TutorialSlide({ slide, index, translateX, screenWidth }: SlideItemProps) {
@@ -39,8 +34,8 @@ export function TutorialSlide({ slide, index, translateX, screenWidth }: SlideIt
   return (
     <View style={{ width: screenWidth, flex: 1, justifyContent: 'center' }}>
       <Animated.View style={[{ flex: 1, justifyContent: 'center' }, animatedStyle]}>
-        <VStack space="xl" className="items-center px-6">
-          <Box
+        <View className="gap-6 items-center px-6">
+          <View
             className="w-28 h-28 rounded-full items-center justify-center"
             style={{ backgroundColor: slide.iconBg }}
           >
@@ -49,40 +44,40 @@ export function TutorialSlide({ slide, index, translateX, screenWidth }: SlideIt
               size={64}
               color={slide.iconColor}
             />
-          </Box>
+          </View>
 
-          <VStack space="sm" className="items-center">
-            <Heading size="2xl" className="text-center text-typography-900">
+          <View className="gap-2 items-center">
+            <RNText className="font-display text-display-lg text-content-primary text-center">
               {slide.title}
-            </Heading>
-            <Text className="text-center text-typography-600 px-2">
+            </RNText>
+            <RNText className="font-body-regular text-body-md text-content-secondary text-center px-2">
               {slide.subtitle}
-            </Text>
-          </VStack>
+            </RNText>
+          </View>
 
-          <VStack space="md" className="w-full bg-background-50 p-5 rounded-2xl mt-2">
+          <View className="gap-3 w-full bg-bg-surface p-5 rounded-2xl">
             {slide.features.map((feature, fIndex) => (
-              <HStack key={fIndex} space="md" className="items-center">
-                <Box
+              <View key={fIndex} className="flex-row gap-3 items-center">
+                <View
                   className="w-10 h-10 rounded-full items-center justify-center"
                   style={{ backgroundColor: `${feature.color}20` }}
                 >
                   <Ionicons name={feature.icon as keyof typeof Ionicons.glyphMap} size={22} color={feature.color} />
-                </Box>
-                <Text className="text-typography-700 flex-1 text-base">{feature.text}</Text>
-              </HStack>
+                </View>
+                <RNText className="font-body-regular text-body-md text-content-secondary flex-1">{feature.text}</RNText>
+              </View>
             ))}
-          </VStack>
+          </View>
 
           {slide.isLast && (
-            <Box className="bg-background-50 p-4 rounded-2xl w-full items-center">
-              <Text className="text-4xl mb-2">🎉</Text>
-              <Text className="text-typography-700 text-center font-medium">
+            <View className="bg-bg-surface p-4 rounded-2xl w-full items-center">
+              <RNText className="text-4xl mb-2">🎉</RNText>
+              <RNText className="font-ui text-ui-md text-content-primary text-center">
                 {t('tutorial.finalMessage')}
-              </Text>
-            </Box>
+              </RNText>
+            </View>
           )}
-        </VStack>
+        </View>
       </Animated.View>
     </View>
   );

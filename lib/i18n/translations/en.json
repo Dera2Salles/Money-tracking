@@ -281,7 +281,8 @@
     "greeting": "Hey there!",
     "title": "Ready to take control of your finances?",
     "subtitle": "A few quick questions to personalize your experience",
-    "cta": "Let's go!"
+    "cta": "Let's go!",
+    "speechBubble": "Hello, I'm Bubule, your guide!"
   },
   "quiz": {
     "questionLabel": "Question",
@@ -306,6 +307,8 @@
   "empathy": {
     "analyzing": "Analyzing your profile...",
     "analyzingSubtitle": "We're preparing something personalized",
+    "searchSpeech": "Hmm, let me take a closer look...",
+    "resultSpeech": "Found it! Here's what I think about you",
     "headlineDefault": "You're not alone",
     "headline_dont_know_where": "72% of people don't know where their money goes",
     "headline_hard_to_save": "Saving is the #1 financial challenge",
@@ -371,7 +374,8 @@
     "reportTitle": "Your mini report",
     "reportTotal": "Total spent",
     "successMessage": "Great! See how easy it is?",
-    "cta": "Set up my account"
+    "cta": "Set up my account",
+    "bubuleCongrats": "Great job! See how easy it is to track your expenses!"
   },
   "tutorial": {
     "slide1Title": "Take Control",
@@ -510,7 +514,13 @@
     "activityFilters": "Activity filters: expenses, income, transfers",
     "reducedRedundancy": "Cleaner interface with less repeated data across screens",
     "transferFilter": "Transfer filter now correctly shows transfers",
-    "transferNotCountedAsExpense": "Transfers are no longer counted as expenses"
+    "transferNotCountedAsExpense": "Transfers are no longer counted as expenses",
+    "bubuleMascot": "Meet Bubule, your mascot and guide!",
+    "bubuleOnboarding": "Bubule guides you through the entire onboarding",
+    "bubuleWowMoment": "Bubule congratulates you when you complete the mini report",
+    "premiumUIRedesign": "Redesigned interface with a premium look",
+    "speechBubbleDesign": "Speech bubbles matching your theme colors",
+    "emptyStatesWithBubule": "Bubule appears on empty screens to motivate you"
   },
   "gamification": {
     "streak": "Streak",
@@ -560,6 +570,19 @@
     "notifChallengeTitle": "Daily challenge not completed",
     "notifChallengeBody": "You still have a few hours to earn 50 XP",
     "notifWeeklyTitle": "Weekly summary",
-    "notifWeeklyBody": "Check your reports to see your progress"
+    "notifWeeklyBody": "Check your reports to see your progress",
+    "bubuleGreeting": "Great job saving! Keep it up!",
+    "bubuleStreak": "{{count}} days in a row, you're on fire!",
+    "bubuleNewUser": "Hey! Ready to take control of your finances?",
+    "bubuleChallenge": "A challenge awaits you today, ready?",
+    "bubuleEncourage": "Every penny counts, you're doing great!",
+    "bubuleSave": "Did you remember to log your expenses today?",
+    "bubuleHappy": "Happy to see you again!",
+    "bubuleTip": "Quick tip: check your expenses every evening!",
+    "bubuleMotivation": "You're on the right track, keep going!",
+    "bubuleAchievements": "Here are your achievements! Keep it up!",
+    "recentSuccess": "Recent Achievements",
+    "newBadge": "New badge: {{name}}",
+    "streakMilestone": "{{count}}-day streak"
   }
 }

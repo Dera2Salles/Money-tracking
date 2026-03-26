@@ -6,10 +6,8 @@ import {
   AlertDialogBody,
   AlertDialogFooter,
 } from '@/components/ui/alert-dialog';
-import { Heading } from '@/components/ui/heading';
-import { Text } from '@/components/ui/text';
-import { Button, ButtonText } from '@/components/ui/button';
-import { useTheme } from '@/contexts';
+import { Text as RNText } from 'react-native';
+import { GhostButton, PrimaryButton, DangerButton } from '@/components/premium';
 import { useTranslation } from 'react-i18next';
 
 interface ConfirmDialogProps {
@@ -31,7 +29,6 @@ export function ConfirmDialog({
   onClose,
   onConfirm,
 }: ConfirmDialogProps) {
-  const { theme } = useTheme();
   const { t } = useTranslation();
 
   return (
@@ -39,21 +36,18 @@ export function ConfirmDialog({
       <AlertDialogBackdrop />
       <AlertDialogContent>
         <AlertDialogHeader>
-          <Heading size="md" className="text-typography-900">{title}</Heading>
+          <RNText className="font-display text-display-md text-content-primary">{title}</RNText>
         </AlertDialogHeader>
         <AlertDialogBody className="mt-3 mb-4">
-          <Text className="text-typography-700">{message}</Text>
+          <RNText className="text-content-secondary text-body-md">{message}</RNText>
         </AlertDialogBody>
         <AlertDialogFooter>
-          <Button variant="outline" onPress={onClose}>
-            <ButtonText>{t('common.cancel')}</ButtonText>
-          </Button>
-          <Button
-            style={{ backgroundColor: isDestructive ? '#DC2626' : theme.colors.primary }}
-            onPress={onConfirm}
-          >
-            <ButtonText className="text-white">{confirmText}</ButtonText>
-          </Button>
+          <GhostButton label={t('common.cancel')} onPress={onClose} compact />
+          {isDestructive ? (
+            <DangerButton label={confirmText} onPress={onConfirm} compact />
+          ) : (
+            <PrimaryButton label={confirmText} onPress={onConfirm} compact />
+          )}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

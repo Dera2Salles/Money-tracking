@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { View } from 'react-native';
+import { View, Text as RNText } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -9,10 +9,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { Text } from '@/components/ui/text';
 import { useTheme } from '@/contexts';
-import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
-import { getDarkModeColors } from '@/constants/darkMode';
 import { PressableScale } from './PressableScale';
 
 interface QuizOptionCardProps {
@@ -25,9 +22,6 @@ interface QuizOptionCardProps {
 
 export function QuizOptionCard({ label, emoji, isSelected, onPress, index }: QuizOptionCardProps) {
   const { theme } = useTheme();
-  const effectiveScheme = useEffectiveColorScheme();
-  const isDark = effectiveScheme === 'dark';
-  const colors = getDarkModeColors(isDark);
   const translateY = useSharedValue(30);
   const opacity = useSharedValue(0);
   const checkScale = useSharedValue(0);
@@ -63,17 +57,13 @@ export function QuizOptionCard({ label, emoji, isSelected, onPress, index }: Qui
     <Animated.View style={animatedStyle}>
       <PressableScale onPress={onPress} haptic="medium" scaleValue={0.96}>
         <View
-          className="flex-row items-center p-4 rounded-2xl gap-3"
-          style={{
-            backgroundColor: isSelected ? theme.colors.primaryLight : colors.chipBg,
-          }}
+          className="flex-row items-center p-4 rounded-2xl gap-3 bg-bg-raised"
+          style={isSelected ? { backgroundColor: theme.colors.primary + '15' } : undefined}
         >
-          <Text className="text-2xl">{emoji}</Text>
-          <Text
-            className="text-typography-900 flex-1 text-base"
-          >
+          <RNText className="text-2xl">{emoji}</RNText>
+          <RNText className="flex-1 font-body-regular text-body-md text-content-primary">
             {label}
-          </Text>
+          </RNText>
           <Animated.View style={checkStyle}>
             <Ionicons
               name="checkmark-circle"

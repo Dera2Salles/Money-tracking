@@ -1,39 +1,27 @@
-import { useState, useCallback } from 'react';
-import { View, Pressable, Platform } from 'react-native';
+import { useCallback, useState } from 'react';
+import { View, Pressable, Text as RNText, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { Box } from '@/components/ui/box';
-import { VStack } from '@/components/ui/vstack';
-import { HStack } from '@/components/ui/hstack';
-import { Heading } from '@/components/ui/heading';
-import { Text } from '@/components/ui/text';
-import { Button, ButtonText } from '@/components/ui/button';
-import { Input, InputField } from '@/components/ui/input';
-import { Center } from '@/components/ui/center';
-import { CategoryPicker } from '@/components/CategoryPicker';
+import { PremiumCard, PrimaryButton, SecondaryButton, FadeIn, Divider } from '@/components/premium';
+import { AddItemForm } from '@/components/planification/AddItemForm';
+import { ItemList } from '@/components/planification/ItemList';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { ValidatePlanificationDialog } from '@/components/ValidatePlanificationDialog';
-import { usePlanificationDetail, useCategories, useBalance, usePlanifications, useAccounts, SYSTEM_CATEGORY_INCOME_ID } from '@/hooks';
+import { EmptyState } from '@/components/premium';
+import { usePlanificationDetail, useBalance, usePlanifications, useAccounts } from '@/hooks';
 import { useTheme } from '@/contexts';
-import { useCurrency } from '@/stores/settingsStore';
 import { usePostHog } from 'posthog-react-native';
-import { formatAmountInput, parseAmount, getNumericValue } from '@/lib/amountInput';
-import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
-import { getDarkModeColors } from '@/constants/darkMode';
-import { DEFAULT_CATEGORIES } from '@/constants/categories';
-import type { TransactionType } from '@/types';
-
-const DEFAULT_CATEGORY_IDS = DEFAULT_CATEGORIES.map((c) => c.id);
+import { useCurrency } from '@/stores/settingsStore';
+import type { TransactionWithCategory } from '@/hooks/useTransactions';
 
 function formatDate(dateStr: string, language: string = 'fr'): string {
   const date = new Date(dateStr);
-  const localeMap: { [key: string]: string } = { fr: 'fr-FR', en: 'en-US', es: 'es-ES', de: 'de-DE' };
-  const locale = localeMap[language] || 'fr-FR';
-  return date.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
+  const localeMap: Record<string, string> = { fr: 'fr-FR', en: 'en-US', es: 'es-ES', de: 'de-DE' };
+  return date.toLocaleDateString(localeMap[language] || 'fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 function isExpired(deadline: string | null): boolean {
@@ -48,43 +36,26 @@ export default function PlanificationDetailScreen() {
   const { t, i18n } = useTranslation();
   const { theme } = useTheme();
   const currency = useCurrency();
+  const posthog = usePostHog();
   const { balance, refresh: refreshBalance } = useBalance();
   const { accounts, refresh: refreshAccounts, formatMoney } = useAccounts();
-  const { expenseCategories, incomeCategory, refresh: refreshCategories } = useCategories();
   const { validatePlanification, updateDeadline } = usePlanifications();
   const { planification, items, linkedTransactions, total, addItem, removeItem, deleteLinkedTransaction, refresh: refreshDetail, isLoading, isFetching } = usePlanificationDetail(id || null);
-  const posthog = usePostHog();
 
-  const effectiveScheme = useEffectiveColorScheme();
-  const isDark = effectiveScheme === 'dark';
-  const colors = getDarkModeColors(isDark);
-
-  const getCategoryName = (categoryId: string | null, categoryName: string | null) => {
-    if (!categoryId) return t('common.noCategory');
-    // Handle system income category
-    if (categoryId === 'system-income') {
-      return t('add.income');
-    }
-    if (DEFAULT_CATEGORY_IDS.includes(categoryId)) {
-      return t(`categories.${categoryId}`);
-    }
-    return categoryName || t('common.noCategory');
-  };
-
-  useFocusEffect(
-    useCallback(() => {
-      refreshCategories();
-    }, [refreshCategories])
-  );
-
-  const [amount, setAmount] = useState('');
-  const [itemType, setItemType] = useState<TransactionType>('expense');
-  const [categoryId, setCategoryId] = useState<string | null>(null);
-  const [note, setNote] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
   const [deleteTransactionId, setDeleteTransactionId] = useState<string | null>(null);
   const [showValidateDialog, setShowValidateDialog] = useState(false);
+
+  useFocusEffect(useCallback(() => { refreshDetail(); }, [refreshDetail]));
+
+  const isPending = planification?.status === 'pending';
+  const expired = isPending && isExpired(planification?.deadline || null);
+  const totalExpenses = items.reduce((sum, item) => item.type !== 'income' ? sum + item.amount : sum, 0);
+  const totalIncome = items.reduce((sum, item) => item.type === 'income' ? sum + item.amount : sum, 0);
+  const netImpact = totalExpenses - totalIncome;
+  const projectedBalance = balance - netImpact;
+  const isNegative = projectedBalance < 0;
 
   const handleDeadlineChange = async (_: unknown, selectedDate?: Date) => {
     setShowDatePicker(Platform.OS === 'ios');
@@ -101,355 +72,173 @@ export default function PlanificationDetailScreen() {
     }
   };
 
-  const handleAddItem = async () => {
-    const numericAmount = getNumericValue(amount);
-    if (!numericAmount || numericAmount <= 0) return;
-    const finalCategoryId = itemType === 'income' ? SYSTEM_CATEGORY_INCOME_ID : categoryId;
-    await addItem(parseAmount(amount), itemType, finalCategoryId, note.trim() || null);
-    posthog.capture('planification_item_added', {
-      item_type: itemType,
-      has_note: !!note.trim(),
-      currency: currency.code,
-    });
-    setAmount('');
-    setItemType('expense');
-    setCategoryId(null);
-    setNote('');
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (deleteItemId) {
-      posthog.capture('planification_item_deleted');
-      await removeItem(deleteItemId);
-      setDeleteItemId(null);
-    }
-  };
-
-  const handleDeleteTransactionConfirm = async () => {
-    if (deleteTransactionId) {
-      posthog.capture('planification_transaction_deleted');
-      const result = await deleteLinkedTransaction(deleteTransactionId);
-      setDeleteTransactionId(null);
-      if (result === 'deleted_planification') {
-        router.replace('/(tabs)/simulation');
-        return;
-      }
-      await refreshBalance();
-      await refreshAccounts();
-    }
+  const handleAddItem = async (amount: number, type: string, categoryId: string | null, note: string | null) => {
+    await addItem(amount, type as any, categoryId, note);
+    posthog.capture('planification_item_added', { item_type: type, has_note: !!note, currency: currency.code });
   };
 
   const handleValidateConfirm = async (planificationId: string, accountId: string) => {
     const result = await validatePlanification(planificationId, accountId);
-    if (result.success) {
-      await refreshBalance();
-      await refreshAccounts();
-      router.back();
-    }
+    if (result.success) { await refreshBalance(); await refreshAccounts(); router.back(); }
     return result;
   };
 
-  const isValid = amount && getNumericValue(amount) > 0;
-  const isPending = planification?.status === 'pending';
-  const expired = isPending && isExpired(planification?.deadline || null);
-
-  // Calculate expenses and income separately
-  const totalExpenses = items.reduce((sum, item) => item.type !== 'income' ? sum + item.amount : sum, 0);
-  const totalIncome = items.reduce((sum, item) => item.type === 'income' ? sum + item.amount : sum, 0);
-  const netImpact = totalExpenses - totalIncome; // positive = net expense, negative = net income
-
-  const projectedBalance = balance - netImpact;
-  const isNegative = projectedBalance < 0;
+  const handleDeleteTransactionConfirm = async () => {
+    if (!deleteTransactionId) return;
+    posthog.capture('planification_transaction_deleted');
+    const result = await deleteLinkedTransaction(deleteTransactionId);
+    setDeleteTransactionId(null);
+    if (result === 'deleted_planification') { router.replace('/(tabs)/simulation'); return; }
+    await refreshBalance();
+    await refreshAccounts();
+  };
 
   if (!planification && !isFetching) {
     return (
-      <View className="flex-1 bg-background-0" style={{ paddingTop: insets.top }}>
-        <Center className="flex-1">
-          <Text className="text-typography-500">{t('planification.notFound')}</Text>
-          <Button className="mt-4" onPress={() => router.back()}><ButtonText>{t('onboarding.back')}</ButtonText></Button>
-        </Center>
+      <View className="flex-1 bg-bg-base items-center justify-center" style={{ paddingTop: insets.top }}>
+        <EmptyState icon="document-text-outline" title={t('planification.notFound')} />
+        <SecondaryButton label={t('onboarding.back')} onPress={() => router.back()} className="mt-4" />
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-background-0" style={{ paddingTop: insets.top }}>
-      <KeyboardAwareScrollView
-        className="flex-1"
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
-        bottomOffset={20}
-      >
-        <VStack className="p-6" space="xl">
-            <HStack className="justify-between items-center">
-              <Pressable onPress={() => router.back()} className="p-2 -ml-2">
+    <View className="flex-1 bg-bg-base" style={{ paddingTop: insets.top }}>
+      <KeyboardAwareScrollView className="flex-1" keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: insets.bottom + 24 }} bottomOffset={20}>
+        <View className="p-6 gap-6">
+          {/* Header */}
+          <FadeIn>
+            <View className="flex-row items-center gap-2">
+              <Pressable onPress={() => router.back()} className="p-2 -ml-2" hitSlop={8}>
                 <Ionicons name="arrow-back" size={24} color={theme.colors.primary} />
               </Pressable>
-              <Heading size="lg" className="text-typography-900 flex-1 ml-2" numberOfLines={1}>
+              <RNText className="font-display text-display-md text-content-primary flex-1" numberOfLines={1}>
                 {planification?.title || t('common.loading')}
-              </Heading>
-            </HStack>
+              </RNText>
+            </View>
+          </FadeIn>
 
-            {isPending && (
-              <Box className="p-3 rounded-xl bg-background-50">
-                <HStack className="justify-between items-center">
-                  <HStack space="sm" className="items-center flex-1">
-                    <Ionicons name="calendar-outline" size={20} color={expired ? '#DC2626' : theme.colors.primary} />
-                    <VStack>
-                      <Text className="text-typography-600 text-sm">{t('planification.deadline')}</Text>
+          {/* Deadline section (pending only) */}
+          {isPending && (
+            <FadeIn>
+              <PremiumCard className="p-4">
+                <View className="flex-row justify-between items-center">
+                  <View className="flex-row gap-3 items-center flex-1">
+                    <Ionicons name="calendar-outline" size={20} color={expired ? '#EB5757' : theme.colors.primary} />
+                    <View>
+                      <RNText className="text-content-tertiary text-body-sm">{t('planification.deadline')}</RNText>
                       {planification?.deadline ? (
-                        <Text className="font-semibold" style={{ color: expired ? '#DC2626' : theme.colors.primary }}>
+                        <RNText className="font-ui text-ui-md" style={{ color: expired ? '#EB5757' : theme.colors.primary }}>
                           {formatDate(planification.deadline, i18n.language)}{expired && ` (${t('planification.expired')})`}
-                        </Text>
+                        </RNText>
                       ) : (
-                        <Text className="text-typography-500">{t('planification.notDefined')}</Text>
+                        <RNText className="text-content-tertiary text-body-md">{t('planification.notDefined')}</RNText>
                       )}
-                    </VStack>
-                  </HStack>
-                  <HStack space="sm">
-                    <Pressable onPress={() => setShowDatePicker(true)} className="p-2 rounded-lg bg-background-100">
+                    </View>
+                  </View>
+                  <View className="flex-row gap-2">
+                    <Pressable onPress={() => setShowDatePicker(true)} className="p-2 rounded-lg bg-bg-raised">
                       <Ionicons name="create-outline" size={20} color={theme.colors.primary} />
                     </Pressable>
                     {planification?.deadline && (
-                      <Pressable onPress={handleRemoveDeadline} className="p-2 rounded-lg bg-background-100">
-                        <Ionicons name="close" size={20} color={colors.textMuted} />
+                      <Pressable onPress={handleRemoveDeadline} className="p-2 rounded-lg bg-bg-raised">
+                        <Ionicons name="close" size={20} color="#8E8EA0" />
                       </Pressable>
                     )}
-                  </HStack>
-                </HStack>
+                  </View>
+                </View>
                 {showDatePicker && (
                   <DateTimePicker value={planification?.deadline ? new Date(planification.deadline) : new Date()} mode="date" display="default" minimumDate={new Date()} onChange={handleDeadlineChange} />
                 )}
-              </Box>
-            )}
+              </PremiumCard>
+            </FadeIn>
+          )}
 
-            {!isPending && (
-              <Box className="p-3 rounded-xl bg-background-100">
-                <HStack space="sm" className="items-start">
-                  <Ionicons name="checkmark-circle" size={20} color="#10B981" />
-                  <Text className="text-typography-600 flex-1">{t('planification.validatedMessage')}</Text>
-                </HStack>
-              </Box>
-            )}
+          {/* Validated status */}
+          {!isPending && (
+            <PremiumCard className="p-4">
+              <View className="flex-row gap-3 items-start">
+                <Ionicons name="checkmark-circle" size={20} color="#48BB78" />
+                <RNText className="text-content-secondary text-body-md flex-1">{t('planification.validatedMessage')}</RNText>
+              </View>
+            </PremiumCard>
+          )}
 
-            <Box className="p-4 rounded-2xl" style={{ backgroundColor: theme.colors.primaryLight }}>
-              <VStack space="md">
-                <HStack className="justify-between">
-                  <Text className="text-typography-600">{t('planification.currentBalance')}</Text>
-                  <Text className="text-typography-900 font-semibold">{formatMoney(balance)}</Text>
-                </HStack>
+          {/* Balance summary */}
+          <FadeIn>
+            <PremiumCard className="p-4" style={{ backgroundColor: theme.colors.primaryLight }}>
+              <View className="gap-3">
+                <View className="flex-row justify-between">
+                  <RNText className="text-content-secondary text-body-md">{t('planification.currentBalance')}</RNText>
+                  <RNText className="font-ui text-ui-md text-content-primary">{formatMoney(balance)}</RNText>
+                </View>
                 {(totalExpenses > 0 || totalIncome > 0) && isPending && (
                   <>
                     {totalExpenses > 0 && (
-                      <HStack className="justify-between">
-                        <Text className="text-typography-600">{t('planification.plannedExpenses')}</Text>
-                        <Text className="text-error-600 font-semibold">- {formatMoney(totalExpenses)}</Text>
-                      </HStack>
+                      <View className="flex-row justify-between">
+                        <RNText className="text-content-secondary text-body-md">{t('planification.plannedExpenses')}</RNText>
+                        <RNText className="font-ui text-ui-md" style={{ color: '#EF4444' }}>- {formatMoney(totalExpenses)}</RNText>
+                      </View>
                     )}
                     {totalIncome > 0 && (
-                      <HStack className="justify-between">
-                        <Text className="text-typography-600">{t('planification.plannedIncome')}</Text>
-                        <Text className="text-success-600 font-semibold">+ {formatMoney(totalIncome)}</Text>
-                      </HStack>
+                      <View className="flex-row justify-between">
+                        <RNText className="text-content-secondary text-body-md">{t('planification.plannedIncome')}</RNText>
+                        <RNText className="font-ui text-ui-md" style={{ color: '#22C55E' }}>+ {formatMoney(totalIncome)}</RNText>
+                      </View>
                     )}
-                    <Box className="h-px bg-outline-200" />
-                    <HStack className="justify-between items-center">
-                      <Text className="text-typography-700 font-medium">{t('planification.balanceAfter')}</Text>
-                      <Text className="text-2xl font-bold" style={{ color: isNegative ? '#DC2626' : theme.colors.primary }}>{formatMoney(projectedBalance)}</Text>
-                    </HStack>
+                    <Divider />
+                    <View className="flex-row justify-between items-center">
+                      <RNText className="font-ui text-ui-md text-content-primary">{t('planification.balanceAfter')}</RNText>
+                      <RNText className="font-display text-display-md" style={{ color: isNegative ? '#EB5757' : theme.colors.primary }}>
+                        {formatMoney(projectedBalance)}
+                      </RNText>
+                    </View>
                     {isNegative && (
-                      <HStack space="xs" className="items-center">
-                        <Ionicons name="warning" size={16} color="#DC2626" />
-                        <Text className="text-error-600 text-sm">{t('planification.negativeWarning')}</Text>
-                      </HStack>
+                      <View className="flex-row gap-2 items-center">
+                        <Ionicons name="warning" size={16} color="#EB5757" />
+                        <RNText className="text-body-sm" style={{ color: '#EF4444' }}>{t('planification.negativeWarning')}</RNText>
+                      </View>
                     )}
                   </>
                 )}
-              </VStack>
-            </Box>
+              </View>
+            </PremiumCard>
+          </FadeIn>
 
-            {isPending && (
-              <VStack space="md">
-                <Text className="text-typography-700 font-semibold text-lg">{t('planification.addElement')}</Text>
-                <HStack space="sm" className="justify-center">
-                  <Pressable onPress={() => setItemType('expense')} className="flex-1">
-                    <Box
-                      className="py-3 px-4 rounded-xl border-2 items-center"
-                      style={{
-                        borderColor: itemType === 'expense' ? '#EF4444' : colors.cardBorder,
-                        backgroundColor: itemType === 'expense' ? (isDark ? '#450A0A' : '#FEF2F2') : colors.cardBg,
-                      }}
-                    >
-                      <HStack space="sm" className="items-center">
-                        <Ionicons
-                          name="arrow-down-circle"
-                          size={20}
-                          color={itemType === 'expense' ? '#EF4444' : colors.textMuted}
-                        />
-                        <Text
-                          className="font-semibold"
-                          style={{ color: itemType === 'expense' ? '#EF4444' : colors.textMuted }}
-                        >
-                          {t('add.expense')}
-                        </Text>
-                      </HStack>
-                    </Box>
-                  </Pressable>
-                  <Pressable onPress={() => setItemType('income')} className="flex-1">
-                    <Box
-                      className="py-3 px-4 rounded-xl border-2 items-center"
-                      style={{
-                        borderColor: itemType === 'income' ? '#22C55E' : colors.cardBorder,
-                        backgroundColor: itemType === 'income' ? (isDark ? '#052E16' : '#F0FDF4') : colors.cardBg,
-                      }}
-                    >
-                      <HStack space="sm" className="items-center">
-                        <Ionicons
-                          name="arrow-up-circle"
-                          size={20}
-                          color={itemType === 'income' ? '#22C55E' : colors.textMuted}
-                        />
-                        <Text
-                          className="font-semibold"
-                          style={{ color: itemType === 'income' ? '#22C55E' : colors.textMuted }}
-                        >
-                          {t('add.income')}
-                        </Text>
-                      </HStack>
-                    </Box>
-                  </Pressable>
-                </HStack>
-                <Center>
-                  <Text className="text-typography-500 text-sm mb-2">{t('planification.amount')} ({currency.code})</Text>
-                  <Input size="xl" variant="underlined" className="w-full max-w-[200px]">
-                    <InputField placeholder="0" keyboardType="decimal-pad" value={amount} onChangeText={(t) => setAmount(formatAmountInput(t))} className="text-3xl text-center font-bold" textAlign="center" />
-                  </Input>
-                </Center>
-                {itemType === 'expense' ? (
-                  <VStack space="sm">
-                    <Text className="text-typography-700 font-medium">{t('add.category')}</Text>
-                    <CategoryPicker categories={expenseCategories} selectedId={categoryId} onSelect={setCategoryId} />
-                  </VStack>
-                ) : (
-                  <VStack space="sm">
-                    <Text className="text-typography-700 font-medium">{t('add.category')}</Text>
-                    <Box className="p-3 rounded-xl border-2" style={{ borderColor: '#22C55E', backgroundColor: isDark ? '#052E16' : '#F0FDF4' }}>
-                      <HStack space="md" className="items-center">
-                        <Box className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: incomeCategory?.color || '#22C55E' }}>
-                          <Ionicons name={(incomeCategory?.icon as keyof typeof Ionicons.glyphMap) || 'trending-up'} size={20} color="white" />
-                        </Box>
-                        <Text className="font-medium text-typography-900">{t('add.income')}</Text>
-                      </HStack>
-                    </Box>
-                  </VStack>
-                )}
-                <VStack space="sm">
-                  <Text className="text-typography-700 font-medium">{t('add.noteOptional')}</Text>
-                  <Input size="md"><InputField placeholder="Ex: Restaurant..." value={note} onChangeText={setNote} maxLength={20} /></Input>
-                  <Text className="text-typography-400 text-xs text-right">{t('common.characters', { current: note.length, max: 20 })}</Text>
-                </VStack>
-                <Button size="lg" className="w-full" style={{ backgroundColor: itemType === 'income' ? '#22C55E' : theme.colors.primary }} onPress={handleAddItem} isDisabled={!isValid || isLoading}>
-                  <ButtonText className="text-white font-semibold">{t('planification.add')}</ButtonText>
-                </Button>
-              </VStack>
-            )}
+          {/* Add item form (pending only) */}
+          {isPending && <AddItemForm isLoading={isLoading} onAddItem={handleAddItem} />}
 
-            {!isPending && linkedTransactions.length > 0 && (
-              <VStack space="md">
-                <Text className="text-typography-700 font-semibold text-lg">{t('planification.linkedTransactions')} ({linkedTransactions.length})</Text>
-                {linkedTransactions.map((tx) => {
-                  const isIncome = tx.type === 'income';
-                  return (
-                    <HStack key={tx.id} className="bg-background-50 p-3 rounded-xl items-center justify-between">
-                      <HStack space="md" className="items-center flex-1">
-                        <Box className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: tx.category_color || '#94A3B8' }}>
-                          {tx.category_icon && <Ionicons name={tx.category_icon as keyof typeof Ionicons.glyphMap} size={20} color="white" />}
-                        </Box>
-                        <VStack className="flex-1">
-                          <Text className="text-typography-900 font-medium">{getCategoryName(tx.category_id, tx.category_name)}</Text>
-                          {tx.note && <Text className="text-typography-500 text-xs" numberOfLines={1}>{tx.note}</Text>}
-                        </VStack>
-                      </HStack>
-                      <HStack space="md" className="items-center">
-                        <Text className="font-semibold" style={{ color: isIncome ? '#22C55E' : '#EF4444' }}>
-                          {isIncome ? '+' : '-'}{formatMoney(tx.amount)}
-                        </Text>
-                        <Pressable onPress={() => setDeleteTransactionId(tx.id)}>
-                          <Ionicons name="close-circle" size={24} color="#DC2626" />
-                        </Pressable>
-                      </HStack>
-                    </HStack>
-                  );
-                })}
-              </VStack>
-            )}
+          {/* Items list */}
+          <ItemList
+            items={items}
+            isPending={isPending}
+            linkedTransactions={linkedTransactions}
+            formatMoney={formatMoney}
+            onDeleteItem={(id) => setDeleteItemId(id)}
+            onDeleteTransaction={(id) => setDeleteTransactionId(id)}
+          />
 
-            {isPending && items.length > 0 && (
-              <VStack space="md">
-                <Text className="text-typography-700 font-semibold text-lg">{t('planification.elements', { count: items.length })}</Text>
-                {items.map((item) => {
-                  const isIncome = item.type === 'income';
-                  return (
-                    <HStack key={item.id} className="bg-background-50 p-3 rounded-xl items-center justify-between">
-                      <HStack space="md" className="items-center flex-1">
-                        <Box className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: item.category_color || '#94A3B8' }}>
-                          {item.category_icon && <Ionicons name={item.category_icon as keyof typeof Ionicons.glyphMap} size={20} color="white" />}
-                        </Box>
-                        <VStack className="flex-1">
-                          <Text className="text-typography-900 font-medium">{getCategoryName(item.category_id, item.category_name)}</Text>
-                          {item.note && <Text className="text-typography-500 text-xs" numberOfLines={1}>{item.note}</Text>}
-                        </VStack>
-                      </HStack>
-                      <HStack space="md" className="items-center">
-                        <Text className="font-semibold" style={{ color: isIncome ? '#22C55E' : '#EF4444' }}>
-                          {isIncome ? '+' : '-'}{formatMoney(item.amount)}
-                        </Text>
-                        <Pressable onPress={() => setDeleteItemId(item.id)}><Ionicons name="close-circle" size={24} color="#DC2626" /></Pressable>
-                      </HStack>
-                    </HStack>
-                  );
-                })}
-              </VStack>
-            )}
-
-            {items.length === 0 && isPending && (
-              <Center className="py-8">
-                <Ionicons name="list-outline" size={48} color={colors.textMuted} />
-                <Text className="text-typography-500 text-center mt-4">{t('planification.addElementsHint')}</Text>
-              </Center>
-            )}
-
-            {isPending && items.length > 0 && (
-              <VStack space="sm" className="mt-4">
-                <Button size="lg" variant="outline" className="w-full" onPress={() => router.back()}>
-                  <HStack space="sm" className="items-center">
-                    <Ionicons name="save-outline" size={20} color={theme.colors.primary} />
-                    <ButtonText style={{ color: theme.colors.primary }}>{t('planification.save')}</ButtonText>
-                  </HStack>
-                </Button>
-                <Button size="lg" className="w-full" style={{ backgroundColor: theme.colors.primary }} onPress={() => setShowValidateDialog(true)}>
-                  <HStack space="sm" className="items-center">
-                    <Ionicons name="checkmark-circle-outline" size={20} color="white" />
-                    <ButtonText className="text-white font-semibold">{t('planification.validateAndDeduct')}</ButtonText>
-                  </HStack>
-                </Button>
-              </VStack>
-            )}
-        </VStack>
+          {/* Action buttons (pending with items) */}
+          {isPending && items.length > 0 && (
+            <View className="gap-3 mt-2">
+              <SecondaryButton
+                label={t('planification.save')}
+                onPress={() => router.back()}
+                icon={<Ionicons name="save-outline" size={20} color="#F0F0F5" />}
+              />
+              <PrimaryButton
+                label={t('planification.validateAndDeduct')}
+                onPress={() => setShowValidateDialog(true)}
+                icon={<Ionicons name="checkmark-circle-outline" size={20} color="white" />}
+              />
+            </View>
+          )}
+        </View>
       </KeyboardAwareScrollView>
 
-      <ConfirmDialog isOpen={!!deleteItemId} title={t('common.delete')} message={t('planification.deleteItemConfirm')} confirmText={t('common.delete')} isDestructive onClose={() => setDeleteItemId(null)} onConfirm={handleDeleteConfirm} />
-
+      <ConfirmDialog isOpen={!!deleteItemId} title={t('common.delete')} message={t('planification.deleteItemConfirm')} confirmText={t('common.delete')} isDestructive onClose={() => setDeleteItemId(null)} onConfirm={async () => { if (deleteItemId) { posthog.capture('planification_item_deleted'); await removeItem(deleteItemId); setDeleteItemId(null); } }} />
       <ConfirmDialog isOpen={!!deleteTransactionId} title={t('planification.deleteTransactionConfirm')} message={t('planification.deleteTransactionMessage')} confirmText={t('common.delete')} isDestructive onClose={() => setDeleteTransactionId(null)} onConfirm={handleDeleteTransactionConfirm} />
-
-      <ValidatePlanificationDialog
-        isOpen={showValidateDialog}
-        planification={planification ? { ...planification, total, item_count: items.length } : null}
-        accounts={accounts}
-        onClose={() => setShowValidateDialog(false)}
-        onValidate={handleValidateConfirm}
-        formatMoney={formatMoney}
-      />
+      <ValidatePlanificationDialog isOpen={showValidateDialog} planification={planification ? { ...planification, total, item_count: items.length } : null} accounts={accounts} onClose={() => setShowValidateDialog(false)} onValidate={handleValidateConfirm} formatMoney={formatMoney} />
     </View>
   );
 }

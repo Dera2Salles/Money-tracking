@@ -1,14 +1,8 @@
 import { useState } from 'react';
-import { Pressable, ScrollView } from 'react-native';
+import { Pressable, ScrollView, TextInput, View } from 'react-native';
+import { Text as RNText } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { Ionicons } from '@expo/vector-icons';
-import { Box } from '@/components/ui/box';
-import { HStack } from '@/components/ui/hstack';
-import { VStack } from '@/components/ui/vstack';
-import { Text } from '@/components/ui/text';
-import { Heading } from '@/components/ui/heading';
-import { Button, ButtonText } from '@/components/ui/button';
-import { Input, InputField } from '@/components/ui/input';
 import {
   AlertDialog,
   AlertDialogBackdrop,
@@ -17,10 +11,9 @@ import {
   AlertDialogBody,
   AlertDialogFooter,
 } from '@/components/ui/alert-dialog';
+import { GhostButton, PrimaryButton } from '@/components/premium';
+import { cn } from '@/lib/utils';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '@/contexts';
-import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
-import { getDarkModeColors } from '@/constants/darkMode';
 
 const CATEGORY_ICONS = [
   { icon: 'fast-food', label: 'Nourriture' },
@@ -65,10 +58,6 @@ export function AddCategoryModal({
   maxCustomCategories,
 }: AddCategoryModalProps) {
   const { t } = useTranslation();
-  const { theme } = useTheme();
-  const effectiveScheme = useEffectiveColorScheme();
-  const isDark = effectiveScheme === 'dark';
-  const colors = getDarkModeColors(isDark);
   const [name, setName] = useState('');
   const [icon, setIcon] = useState('cube');
   const [color, setColor] = useState('#3498DB');
@@ -100,35 +89,26 @@ export function AddCategoryModal({
     onClose();
   };
 
-  // Show limit reached view
   if (!canCreateCategory) {
     return (
       <AlertDialog isOpen={isOpen} onClose={handleClose}>
         <AlertDialogBackdrop />
         <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
-            <HStack space="sm" className="items-center">
-              <Box
-                className="w-10 h-10 rounded-full items-center justify-center"
-                style={{ backgroundColor: isDark ? '#450A0A' : '#FEE2E2' }}
-              >
+            <View className="flex-row items-center gap-3">
+              <View className="w-10 h-10 rounded-full items-center justify-center bg-error/10">
                 <Ionicons name="alert-circle" size={24} color="#EF4444" />
-              </Box>
-              <Heading size="md" className="text-typography-900">{t('category.limitReached')}</Heading>
-            </HStack>
+              </View>
+              <RNText className="font-display text-display-md text-content-primary">{t('category.limitReached')}</RNText>
+            </View>
           </AlertDialogHeader>
           <AlertDialogBody className="mt-3 mb-4">
-            <Text className="text-typography-600">
+            <RNText className="font-body-regular text-body-md text-content-secondary">
               {t('category.limitMessage', { max: maxCustomCategories })}
-            </Text>
+            </RNText>
           </AlertDialogBody>
           <AlertDialogFooter>
-            <Button
-              style={{ backgroundColor: theme.colors.primary }}
-              onPress={handleClose}
-            >
-              <ButtonText className="text-white">{t('common.understood')}</ButtonText>
-            </Button>
+            <PrimaryButton label={t('common.understood')} onPress={handleClose} compact />
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -140,12 +120,12 @@ export function AddCategoryModal({
       <AlertDialogBackdrop />
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
-          <HStack className="items-center justify-between w-full">
-            <Heading size="md" className="text-typography-900">{t('category.new')}</Heading>
-            <Text className="text-typography-500 text-sm">
+          <View className="flex-row items-center justify-between w-full">
+            <RNText className="font-display text-display-md text-content-primary">{t('category.new')}</RNText>
+            <RNText className="text-content-tertiary text-sm">
               {customCategoriesCount}/{maxCustomCategories}
-            </Text>
-          </HStack>
+            </RNText>
+          </View>
         </AlertDialogHeader>
         <AlertDialogBody className="mt-3 mb-4">
           <KeyboardAwareScrollView
@@ -154,69 +134,69 @@ export function AddCategoryModal({
             bottomOffset={20}
             style={{ maxHeight: 400 }}
           >
-            <VStack space="lg">
-              <VStack space="sm">
-                <Text className="text-typography-700 font-medium">{t('category.name')}</Text>
-                <Input size="md">
-                  <InputField
+            <View className="gap-4">
+              <View className="gap-2">
+                <RNText className="font-body-bold text-body-md text-content-primary">{t('category.name')}</RNText>
+                <View className="rounded-xl bg-bg-raised px-4 py-3">
+                  <TextInput
                     placeholder={t('category.namePlaceholder')}
                     value={name}
                     onChangeText={setName}
+                    className="font-body-regular text-body-md text-content-primary"
+                    placeholderTextColor="#8E8EA0"
                   />
-                </Input>
-              </VStack>
+                </View>
+              </View>
 
-              <VStack space="sm">
-                <Text className="text-typography-700 font-medium">{t('category.icon')}</Text>
+              <View className="gap-2">
+                <RNText className="font-body-bold text-body-md text-content-primary">{t('category.icon')}</RNText>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  <HStack space="sm">
+                  <View className="flex-row gap-3">
                     {CATEGORY_ICONS.map((item) => (
                       <Pressable key={item.icon} onPress={() => setIcon(item.icon)}>
-                        <Box
-                          className="w-12 h-12 rounded-xl border-2 items-center justify-center"
-                          style={{
-                            borderColor: icon === item.icon ? color : colors.cardBorder,
-                            backgroundColor: icon === item.icon ? `${color}20` : colors.cardBg,
-                          }}
+                        <View
+                          className={cn('w-12 h-12 rounded-xl items-center justify-center', icon !== item.icon && 'bg-bg-raised')}
+                          style={icon === item.icon ? { backgroundColor: `${color}20` } : undefined}
                         >
                           <Ionicons
                             name={item.icon as keyof typeof Ionicons.glyphMap}
                             size={24}
-                            color={icon === item.icon ? color : colors.textMuted}
+                            color={icon === item.icon ? color : '#8E8EA0'}
                           />
-                        </Box>
+                        </View>
                       </Pressable>
                     ))}
-                  </HStack>
+                  </View>
                 </ScrollView>
-              </VStack>
+              </View>
 
-              <VStack space="sm">
-                <Text className="text-typography-700 font-medium">{t('category.color')}</Text>
-                <HStack space="sm" className="flex-wrap">
+              <View className="gap-2">
+                <RNText className="font-body-bold text-body-md text-content-primary">{t('category.color')}</RNText>
+                <View className="flex-row flex-wrap gap-3">
                   {CATEGORY_COLORS.map((c) => (
                     <Pressable key={c} onPress={() => setColor(c)}>
-                      <Box
-                        className="w-10 h-10 rounded-full border-2 items-center justify-center"
+                      <View
+                        className="w-10 h-10 rounded-full items-center justify-center"
                         style={{
                           backgroundColor: c,
-                          borderColor: color === c ? (isDark ? '#FFF' : '#000') : 'transparent',
+                          borderWidth: color === c ? 3 : 0,
+                          borderColor: color === c ? '#FFF' : 'transparent',
                         }}
                       >
                         {color === c && (
                           <Ionicons name="checkmark" size={20} color="#FFF" />
                         )}
-                      </Box>
+                      </View>
                     </Pressable>
                   ))}
-                </HStack>
-              </VStack>
+                </View>
+              </View>
 
-              <Box
+              <View
                 className="p-3 rounded-xl items-center"
                 style={{ backgroundColor: `${color}20` }}
               >
-                <Box
+                <View
                   className="w-14 h-14 rounded-full items-center justify-center mb-2"
                   style={{ backgroundColor: color }}
                 >
@@ -225,27 +205,22 @@ export function AddCategoryModal({
                     size={28}
                     color="#FFF"
                   />
-                </Box>
-                <Text className="font-medium" style={{ color }}>
+                </View>
+                <RNText className="font-body-bold text-body-md" style={{ color }}>
                   {name || t('category.preview')}
-                </Text>
-              </Box>
-            </VStack>
+                </RNText>
+              </View>
+            </View>
           </KeyboardAwareScrollView>
         </AlertDialogBody>
         <AlertDialogFooter>
-          <Button variant="outline" onPress={handleClose} isDisabled={isCreating}>
-            <ButtonText>{t('common.cancel')}</ButtonText>
-          </Button>
-          <Button
-            style={{ backgroundColor: theme.colors.primary }}
+          <GhostButton label={t('common.cancel')} onPress={handleClose} disabled={isCreating} compact />
+          <PrimaryButton
+            label={isCreating ? t('category.creating') : t('category.create')}
             onPress={handleCreate}
-            isDisabled={!name.trim() || isCreating}
-          >
-            <ButtonText className="text-white">
-              {isCreating ? t('category.creating') : t('category.create')}
-            </ButtonText>
-          </Button>
+            disabled={!name.trim() || isCreating}
+            compact
+          />
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

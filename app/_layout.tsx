@@ -2,19 +2,20 @@ import { Stack, usePathname, useGlobalSearchParams } from "expo-router";
 import { Suspense, useEffect, useRef } from "react";
 import { ActivityIndicator, StatusBar, View } from "react-native";
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PostHogProvider } from "posthog-react-native";
 
 import { GluestackUIProvider, useEffectiveColorScheme } from "@/components/ui/gluestack-ui-provider";
 import { ThemeProvider, LanguageProvider } from "@/contexts";
 import "@/global.css";
 import { DatabaseProvider } from "@/lib/database/sqlite";
-import { getDarkModeColors } from "@/constants/darkMode";
+import { getBgBaseHex } from "@/constants/designTokens";
 import { posthog } from "@/lib/posthog";
 
 function LoadingFallback() {
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: '#121212' }}>
-      <ActivityIndicator size="large" color="#FFFFFF" />
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: '#121216' }}>
+      <ActivityIndicator size="large" color="#F0F0F5" />
     </View>
   );
 }
@@ -22,17 +23,17 @@ function LoadingFallback() {
 function AppContent() {
   const effectiveScheme = useEffectiveColorScheme();
   const isDark = effectiveScheme === 'dark';
-  const colors = getDarkModeColors(isDark);
+  const bgColor = getBgBaseHex(isDark);
 
   return (
     <>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.background} />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={bgColor} />
       <Stack
         screenOptions={{
           headerShown: false,
           animation: 'slide_from_right',
           contentStyle: {
-            backgroundColor: colors.background,
+            backgroundColor: bgColor,
           },
         }}
       >
@@ -76,6 +77,7 @@ export default function RootLayout() {
         maxElementsCaptured: 20,
       }}
     >
+      <GestureHandlerRootView style={{ flex: 1 }}>
       <KeyboardProvider>
         <GluestackUIProvider>
           <Suspense fallback={<LoadingFallback />}>
@@ -90,6 +92,7 @@ export default function RootLayout() {
           </Suspense>
         </GluestackUIProvider>
       </KeyboardProvider>
+      </GestureHandlerRootView>
     </PostHogProvider>
   );
 }

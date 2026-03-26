@@ -281,7 +281,8 @@
     "greeting": "Miarahaba !",
     "title": "Vonona ve ianao hitantana ny volanao?",
     "subtitle": "Fanontaniana vitsivitsy mba hampifanaraka ny traikefanao",
-    "cta": "Andeha !"
+    "cta": "Andeha !",
+    "speechBubble": "Manahoana, izaho Bubule, mpitarika anao !"
   },
   "quiz": {
     "questionLabel": "Fanontaniana",
@@ -306,6 +307,8 @@
   "empathy": {
     "analyzing": "Manadihady ny mombamomba anao...",
     "analyzingSubtitle": "Manomana zavatra manokana ho anao izahay",
+    "searchSpeech": "Hmm, avelao aho hijery akaiky kokoa...",
+    "resultSpeech": "Hitako! Izao no hevitro momba anao",
     "headlineDefault": "Tsy ianao irery",
     "headline_dont_know_where": "72% ny olona tsy mahafantatra izay alehan'ny volany",
     "headline_hard_to_save": "Ny fitahirizam-bola no olana lehibe indrindra",
@@ -371,7 +374,8 @@
     "reportTitle": "Tatitra kely",
     "reportTotal": "Totaly lany",
     "successMessage": "Tsara! Hitanao ve fa mora?",
-    "cta": "Hampiomana ny kaontiko"
+    "cta": "Hampiomana ny kaontiko",
+    "bubuleCongrats": "Tsara be! Hitanao ve fa mora ny manara-maso ny fandanianao!"
   },
   "tutorial": {
     "slide1Title": "Tantano ny volanao",
@@ -510,7 +514,13 @@
     "activityFilters": "Sivana isaky ny karazana: fandaniana, vola miditra, famindrana",
     "reducedRedundancy": "Interface madio kokoa: vitsy ny angona miverimberina eo amin'ny pejy",
     "transferFilter": "Ny sivana Famindrana dia mampiseho tsara ny famindrana",
-    "transferNotCountedAsExpense": "Ny famindrana dia tsy voaisana ho fandaniana intsony"
+    "transferNotCountedAsExpense": "Ny famindrana dia tsy voaisana ho fandaniana intsony",
+    "bubuleMascot": "Tonga i Bubule, ny mascotte sy mpitarika anao!",
+    "bubuleOnboarding": "Bubule mitarika anao mandritra ny fampidirana",
+    "bubuleWowMoment": "Miarahaba anao i Bubule rehefa vita ny tatitra kely",
+    "premiumUIRedesign": "Interface vaovao premium",
+    "speechBubbleDesign": "Boaty resaka mifanaraka amin'ny lokon'ny thème anao",
+    "emptyStatesWithBubule": "Miseho i Bubule rehefa tsy misy zavatra mba hamporisika anao"
   },
   "gamification": {
     "streak": "Fitohy",
@@ -560,6 +570,19 @@
     "notifChallengeTitle": "Tsy mbola vita ny fanamby androany",
     "notifChallengeBody": "Mbola manana ora vitsivitsy ianao hahazoana 50 XP",
     "notifWeeklyTitle": "Famintinana ny herinandro",
-    "notifWeeklyBody": "Jereo ny tatitrao mba hahitana ny fandrosoanao"
+    "notifWeeklyBody": "Jereo ny tatitrao mba hahitana ny fandrosoanao",
+    "bubuleGreeting": "Tsara be! Tohizo foana!",
+    "bubuleStreak": "{{count}} andro misesy, mirehitra ianao!",
+    "bubuleNewUser": "Manahoana! Vonona hitantana ny volanao ve?",
+    "bubuleChallenge": "Misy fanamby miandry anao androany!",
+    "bubuleEncourage": "Manan-danja ny ariary tsirairay, tsara ny asanao!",
+    "bubuleSave": "Efa nosoratanao ve ny fandanianao androany?",
+    "bubuleHappy": "Faly mahita anao indray aho!",
+    "bubuleTip": "Torohevitra: jereo ny fandanianao isan-kariva!",
+    "bubuleMotivation": "Eo amin'ny lalana tsara ianao, tohizo!",
+    "bubuleAchievements": "Ireto ny fahombiazanao! Tohizo foana!",
+    "recentSuccess": "Fahombiazana Farany",
+    "newBadge": "Badge vaovao : {{name}}",
+    "streakMilestone": "Serizy {{count}} andro"
   }
 }

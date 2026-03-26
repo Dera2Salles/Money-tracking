@@ -1,33 +1,23 @@
 import { useState } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView, Text as RNText } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
-import { Box } from '@/components/ui/box';
-import { VStack } from '@/components/ui/vstack';
-import { HStack } from '@/components/ui/hstack';
-import { Heading } from '@/components/ui/heading';
-import { Text } from '@/components/ui/text';
-import { Button, ButtonText } from '@/components/ui/button';
 import { useOnboarding } from '@/hooks';
 import { useTheme } from '@/contexts';
 import { usePostHog } from 'posthog-react-native';
 import { DEFAULT_CATEGORIES } from '@/constants/categories';
-import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
-import { getDarkModeColors } from '@/constants/darkMode';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { PressableScale } from '@/components/onboarding/PressableScale';
+import { PrimaryButton } from '@/components/premium';
 
 export default function CategoriesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const effectiveScheme = useEffectiveColorScheme();
-  const isDark = effectiveScheme === 'dark';
-  const colors = getDarkModeColors(isDark);
   const { bankBalance, cashBalance } = useLocalSearchParams<{ bankBalance: string; cashBalance: string }>();
   const { saveOnboardingData, isLoading, categories } = useOnboarding();
   const posthog = usePostHog();
@@ -66,23 +56,23 @@ export default function CategoriesScreen() {
 
   return (
     <View
-      className="flex-1 bg-background-0"
+      className="flex-1 bg-bg-base"
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
     >
-      <Box className="flex-1 p-6">
+      <View className="flex-1 p-6">
         <ProgressBar step={8} totalSteps={8} />
 
-        <VStack space="md" className="mb-4">
-          <Heading size="xl" className="text-typography-900">
+        <View className="gap-3 mb-4">
+          <RNText className="font-display text-display-xl text-content-primary">
             {t('onboarding.chooseCategories')}
-          </Heading>
-          <Text className="text-typography-600">
+          </RNText>
+          <RNText className="font-body-regular text-body-lg text-content-secondary">
             {t('onboarding.categoriesDescription')}
-          </Text>
-        </VStack>
+          </RNText>
+        </View>
 
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-          <VStack space="sm">
+          <View className="gap-2">
             {categories.map((category) => {
               const isSelected = selectedCategories.has(category.id);
               return (
@@ -90,14 +80,13 @@ export default function CategoriesScreen() {
                   key={category.id}
                   onPress={() => toggleCategory(category.id)}
                 >
-                  <HStack
-                    className="p-4 rounded-xl"
+                  <View
+                    className="flex-row p-4 rounded-xl gap-3 items-center"
                     style={{
-                      backgroundColor: isSelected ? theme.colors.primaryLight : colors.chipBg,
+                      backgroundColor: isSelected ? theme.colors.primary + '15' : '#F2F2F6',
                     }}
-                    space="md"
                   >
-                    <Box
+                    <View
                       className="w-12 h-12 rounded-full items-center justify-center"
                       style={{ backgroundColor: category.color + '20' }}
                     >
@@ -106,39 +95,35 @@ export default function CategoriesScreen() {
                         size={24}
                         color={category.color}
                       />
-                    </Box>
-                    <VStack className="flex-1 justify-center">
-                      <Text className="font-semibold text-typography-900">
+                    </View>
+                    <View className="flex-1 justify-center">
+                      <RNText className="font-ui text-ui-md text-content-primary">
                         {defaultCategoryIds.has(category.id) ? t(`categories.${category.id}`) : category.name}
-                      </Text>
-                    </VStack>
-                    <Box
+                      </RNText>
+                    </View>
+                    <View
                       className="w-6 h-6 rounded-full items-center justify-center"
                       style={{
-                        backgroundColor: isSelected ? theme.colors.primary : (isDark ? '#3A3A3C' : '#E5E5EA'),
+                        backgroundColor: isSelected ? theme.colors.primary : '#E5E5EA',
                       }}
                     >
                       {isSelected && (
                         <Ionicons name="checkmark" size={14} color="white" />
                       )}
-                    </Box>
-                  </HStack>
+                    </View>
+                  </View>
                 </PressableScale>
               );
             })}
-          </VStack>
+          </View>
         </ScrollView>
 
-        <Button
-          size="xl"
-          className="w-full mt-4"
-          style={{ backgroundColor: theme.colors.primary }}
+        <PrimaryButton
+          label={isLoading ? t('common.loading') : t('onboarding.finish')}
           onPress={handleFinish}
-          isDisabled={isLoading || selectedCategories.size === 0}
-        >
-          <ButtonText className="text-white">{isLoading ? t('common.loading') : t('onboarding.finish')}</ButtonText>
-        </Button>
-      </Box>
+          disabled={isLoading || selectedCategories.size === 0}
+        />
+      </View>
     </View>
   );
 }

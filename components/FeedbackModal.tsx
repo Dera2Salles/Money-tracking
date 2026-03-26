@@ -1,15 +1,9 @@
 import { useState } from 'react';
-import { Platform, TextInput } from 'react-native';
+import { Platform, TextInput, View } from 'react-native';
+import { Text as RNText } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { Box } from '@/components/ui/box';
-import { VStack } from '@/components/ui/vstack';
-import { HStack } from '@/components/ui/hstack';
-import { Text } from '@/components/ui/text';
-import { Heading } from '@/components/ui/heading';
-import { Button, ButtonText } from '@/components/ui/button';
-import { Input, InputField } from '@/components/ui/input';
 import {
   AlertDialog,
   AlertDialogBackdrop,
@@ -18,9 +12,8 @@ import {
   AlertDialogBody,
   AlertDialogFooter,
 } from '@/components/ui/alert-dialog';
+import { GhostButton, PrimaryButton } from '@/components/premium';
 import { useTheme } from '@/contexts';
-import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
-import { getDarkModeColors } from '@/constants/darkMode';
 import { SUPABASE_URL, SUPABASE_ANON_KEY, APP_VERSION, PROJECT_NAME } from '@/constants/app';
 import { checkInternetConnection } from '@/lib/network';
 
@@ -34,9 +27,6 @@ interface FeedbackModalProps {
 export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const effectiveScheme = useEffectiveColorScheme();
-  const isDark = effectiveScheme === 'dark';
-  const darkModeColors = getDarkModeColors(isDark);
 
   const [message, setMessage] = useState('');
   const [email, setEmail] = useState('');
@@ -109,15 +99,15 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
       <AlertDialogBackdrop />
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
-          <HStack space="sm" className="items-center">
-            <Box
+          <View className="flex-row gap-3 items-center">
+            <View
               className="w-10 h-10 rounded-full items-center justify-center"
               style={{ backgroundColor: theme.colors.primaryLight }}
             >
               <Ionicons name="chatbubble-ellipses" size={20} color={theme.colors.primary} />
-            </Box>
-            <Heading size="md" className="text-typography-900">{t('feedback.modalTitle')}</Heading>
-          </HStack>
+            </View>
+            <RNText className="font-display text-display-md text-content-primary">{t('feedback.modalTitle')}</RNText>
+          </View>
         </AlertDialogHeader>
         <AlertDialogBody className="mt-3 mb-4">
           <KeyboardAwareScrollView
@@ -126,85 +116,75 @@ export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
             bottomOffset={20}
             style={{ maxHeight: 350 }}
           >
-            <VStack space="lg">
-              <VStack space="sm">
-                <Text className="text-typography-700 font-medium">{t('feedback.messageLabel')}</Text>
-                <Box
-                  className="rounded-lg border border-outline-300 p-3"
-                  style={{ backgroundColor: darkModeColors.inputBg }}
-                >
+            <View className="gap-4">
+              <View className="gap-2">
+                <RNText className="font-semibold text-content-primary">{t('feedback.messageLabel')}</RNText>
+                <View className="rounded-xl bg-bg-raised px-4 py-3">
                   <TextInput
                     placeholder={t('feedback.messagePlaceholder')}
-                    placeholderTextColor={darkModeColors.textMuted}
+                    placeholderTextColor="#8E8EA0"
                     value={message}
                     onChangeText={setMessage}
                     maxLength={MAX_MESSAGE_LENGTH}
                     multiline
                     numberOfLines={4}
-                    textAlignVertical="top"
-                    style={{
-                      minHeight: 100,
-                      color: isDark ? '#FFFFFF' : '#1F2937',
-                      fontSize: 14,
-                    }}
+                    className="font-body-regular text-body-md text-content-primary"
+                    style={{ minHeight: 100, textAlignVertical: 'top' }}
                   />
-                </Box>
-                <Text className="text-typography-400 text-xs text-right">
+                </View>
+                <RNText className="text-xs text-right text-content-tertiary">
                   {t('common.characters', { current: message.length, max: MAX_MESSAGE_LENGTH })}
-                </Text>
-              </VStack>
+                </RNText>
+              </View>
 
-              <VStack space="sm">
-                <Text className="text-typography-700 font-medium">{t('feedback.emailLabel')}</Text>
-                <Input size="md">
-                  <InputField
+              <View className="gap-2">
+                <RNText className="font-semibold text-content-primary">{t('feedback.emailLabel')}</RNText>
+                <View className="rounded-xl bg-bg-raised px-4 py-3">
+                  <TextInput
                     placeholder={t('feedback.emailPlaceholder')}
+                    placeholderTextColor="#8E8EA0"
                     value={email}
                     onChangeText={setEmail}
                     keyboardType="email-address"
                     autoCapitalize="none"
+                    className="font-body-regular text-body-md text-content-primary"
                   />
-                </Input>
-              </VStack>
+                </View>
+              </View>
 
-              <HStack space="xs" className="items-center">
-                <Ionicons name="wifi" size={14} color={darkModeColors.textMuted} />
-                <Text className="text-typography-400 text-xs">{t('feedback.requiresInternet')}</Text>
-              </HStack>
+              <View className="flex-row gap-2 items-center">
+                <Ionicons name="wifi" size={14} color="#8E8EA0" />
+                <RNText className="text-xs text-content-tertiary">{t('feedback.requiresInternet')}</RNText>
+              </View>
 
               {success && (
-                <Box className="p-3 rounded-xl" style={{ backgroundColor: isDark ? '#052E16' : '#F0FDF4' }}>
-                  <HStack space="sm" className="items-center">
+                <View className="p-3 rounded-xl bg-success/10">
+                  <View className="flex-row gap-2 items-center">
                     <Ionicons name="checkmark-circle" size={20} color="#22C55E" />
-                    <Text className="text-success-700 font-medium">{t('feedback.successMessage')}</Text>
-                  </HStack>
-                </Box>
+                    <RNText className="font-semibold text-success">{t('feedback.successMessage')}</RNText>
+                  </View>
+                </View>
               )}
 
               {error && (
-                <Box className="p-3 rounded-xl" style={{ backgroundColor: isDark ? '#450A0A' : '#FEF2F2' }}>
-                  <HStack space="sm" className="items-center">
+                <View className="p-3 rounded-xl bg-error/10">
+                  <View className="flex-row gap-2 items-center">
                     <Ionicons name="alert-circle" size={20} color="#EF4444" />
-                    <Text className="text-error-700 font-medium">{error}</Text>
-                  </HStack>
-                </Box>
+                    <RNText className="font-semibold text-error">{error}</RNText>
+                  </View>
+                </View>
               )}
-            </VStack>
+            </View>
           </KeyboardAwareScrollView>
         </AlertDialogBody>
         <AlertDialogFooter>
-          <Button variant="outline" onPress={handleClose} isDisabled={isSubmitting}>
-            <ButtonText>{t('common.cancel')}</ButtonText>
-          </Button>
-          <Button
-            style={{ backgroundColor: theme.colors.primary }}
+          <GhostButton label={t('common.cancel')} onPress={handleClose} disabled={isSubmitting} compact />
+          <PrimaryButton
+            label={isSubmitting ? t('feedback.sending') : t('feedback.send')}
             onPress={handleSubmit}
-            isDisabled={!message.trim() || isSubmitting}
-          >
-            <ButtonText className="text-white">
-              {isSubmitting ? t('feedback.sending') : t('feedback.send')}
-            </ButtonText>
-          </Button>
+            disabled={!message.trim() || isSubmitting}
+            compact
+          />
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

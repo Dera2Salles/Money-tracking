@@ -11,6 +11,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: "1.1.1",
+    date: "2026-03-20",
+    changes: [
+      { type: "improved", key: "changelog.premiumUIRedesign" },
+      { type: "added", key: "changelog.bubuleMascot" },
+    ],
+  },
+  {
     version: "1.1.0",
     date: "2026-03-04",
     changes: [

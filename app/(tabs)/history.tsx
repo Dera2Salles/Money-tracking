@@ -1,25 +1,21 @@
 import { useMemo, useCallback, useState } from 'react';
-import { View, SectionList, RefreshControl, Pressable } from 'react-native';
+import { View, SectionList, RefreshControl, Pressable, Text as RNText } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { Box } from '@/components/ui/box';
-import { VStack } from '@/components/ui/vstack';
-import { HStack } from '@/components/ui/hstack';
-import { Heading } from '@/components/ui/heading';
-import { Text } from '@/components/ui/text';
-import { Center } from '@/components/ui/center';
 import { TransactionCard } from '@/components/TransactionCard';
 import { PlanificationTransactionGroup } from '@/components/PlanificationTransactionGroup';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { AchievementsTab } from '@/components/AchievementsTab';
 import { ActivityHeader } from '@/components/ActivityHeader';
+import { EmptyState, SecondaryButton } from '@/components/premium';
 import { useTransactions } from '@/hooks';
 import { useTheme } from '@/contexts';
 import { formatCurrency } from '@/lib/currency';
 import { useCurrencyCode } from '@/stores/settingsStore';
 import { usePostHog } from 'posthog-react-native';
+import { cn } from '@/lib/utils';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
 import type { PlanificationGroupData } from '@/components/PlanificationTransactionGroup';
 
@@ -123,65 +119,61 @@ export default function HistoryScreen() {
   };
 
   const renderSectionHeader = ({ section }: { section: Section }) => (
-    <Box className="bg-background-100 px-4 py-2">
-      <HStack className="justify-between items-center">
-        <Text className="text-typography-600 font-semibold text-sm">{section.title}</Text>
-        <Text className="text-xs font-semibold" style={{ color: section.dayTotal >= 0 ? '#22C55E' : '#EF4444' }}>
+    <View className="bg-bg-muted px-4 py-2">
+      <View className="flex-row justify-between items-center">
+        <RNText className="text-content-secondary font-semibold text-sm">{section.title}</RNText>
+        <RNText className="text-xs font-semibold" style={{ color: section.dayTotal >= 0 ? '#22C55E' : '#EF4444' }}>
           {section.dayTotal >= 0 ? '+' : ''}{formatCurrency(Math.abs(section.dayTotal), currencyCode)}
-        </Text>
-      </HStack>
-    </Box>
+        </RNText>
+      </View>
+    </View>
   );
 
   const renderItem = ({ item }: { item: HistoryItem }) => (
-    <Box className="px-4 py-1">
+    <View className="px-4 py-1">
       {item._type === 'group' ? (
         <PlanificationTransactionGroup group={item.group} onLongPress={() => setDeleteGroupTarget(item.group)} />
       ) : (
-        <TransactionCard transaction={item.transaction} onLongPress={() => setDeleteTarget(item.transaction)} />
+        <TransactionCard transaction={item.transaction} onDelete={() => setDeleteTarget(item.transaction)} />
       )}
-    </Box>
+    </View>
   );
 
   const renderEmpty = () => (
-    <Center className="flex-1 py-20">
-      <Text className="text-6xl mb-4">📭</Text>
-      <Text className="text-typography-500 text-center">{t('history.noTransactions')}</Text>
-      <Text className="text-typography-400 text-center text-sm mt-1">{t('history.addFirst')}</Text>
-    </Center>
+    <View className="flex-1 py-20 items-center justify-center">
+      <EmptyState icon="receipt-outline" title={t('history.noTransactions')} description={t('history.addFirst')} image={require('@/assets/images/bubule-detente.png')} />
+    </View>
   );
 
   const renderFooter = () => hasMore ? (
-    <Box className="px-4 py-4">
-      <Pressable onPress={() => setVisibleCount((p) => p + ITEMS_PER_PAGE)} className="py-3 rounded-xl border border-outline-200" style={{ backgroundColor: theme.colors.primaryLight }}>
-        <Text className="text-center font-medium" style={{ color: theme.colors.primary }}>{t('history.loadMore')}</Text>
-      </Pressable>
-    </Box>
+    <View className="px-4 py-4">
+      <SecondaryButton label={t('history.loadMore')} onPress={() => setVisibleCount((p) => p + ITEMS_PER_PAGE)} />
+    </View>
   ) : null;
 
   const TabButton = ({ tab, icon, label }: { tab: TabType; icon: string; label: string }) => (
     <Pressable onPress={() => { posthog.capture('tab_switched', { tab, source: 'history' }); setActiveTab(tab); }} className="flex-1">
-      <Box className="py-2 rounded-lg items-center" style={activeTab === tab ? { backgroundColor: theme.colors.primary } : {}}>
-        <HStack space="xs" className="items-center">
+      <View className={cn('py-2 rounded-lg items-center', activeTab === tab ? 'bg-brand' : '')}>
+        <View className="flex-row gap-1 items-center">
           <Ionicons name={(activeTab === tab ? icon : `${icon}-outline`) as any} size={16} color={activeTab === tab ? '#FFFFFF' : '#9CA3AF'} />
-          <Text className="text-sm font-semibold" style={{ color: activeTab === tab ? '#FFFFFF' : '#9CA3AF' }}>{label}</Text>
-        </HStack>
-      </Box>
+          <RNText className="text-sm font-semibold" style={{ color: activeTab === tab ? '#FFFFFF' : '#9CA3AF' }}>{label}</RNText>
+        </View>
+      </View>
     </Pressable>
   );
 
   return (
-    <View className="flex-1 bg-background-0" style={{ paddingTop: insets.top }}>
-      <VStack className="flex-1">
-        <Box className="px-6 py-4 bg-background-0">
-          <Heading size="xl" className="text-typography-900">{t('history.title')}</Heading>
-          <Box className="bg-background-100 p-1 rounded-xl mt-3">
-            <HStack>
+    <View className="flex-1 bg-bg-base" style={{ paddingTop: insets.top }}>
+      <View className="flex-1">
+        <View className="px-6 py-4 bg-bg-base">
+          <RNText className="font-display text-display-md text-content-primary">{t('history.title')}</RNText>
+          <View className="bg-bg-raised p-1 rounded-xl mt-3">
+            <View className="flex-row">
               <TabButton tab="history" icon="receipt" label={t('history.transactions')} />
               <TabButton tab="achievements" icon="trophy" label={t('gamification.achievements')} />
-            </HStack>
-          </Box>
-        </Box>
+            </View>
+          </View>
+        </View>
 
         {activeTab === 'achievements' ? (
           <AchievementsTab />
@@ -202,7 +194,7 @@ export default function HistoryScreen() {
             refreshControl={<RefreshControl refreshing={isFetching} onRefresh={refresh} />}
           />
         )}
-      </VStack>
+      </View>
 
       <ConfirmDialog
         isOpen={!!deleteTarget}

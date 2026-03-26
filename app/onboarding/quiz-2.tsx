@@ -1,21 +1,23 @@
-import { useState } from 'react';
-import { useRouter } from 'expo-router';
-import { View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { usePostHog } from 'posthog-react-native';
-import { useTranslation } from 'react-i18next';
-import { Box } from '@/components/ui/box';
-import { VStack } from '@/components/ui/vstack';
-import { Heading } from '@/components/ui/heading';
-import { Text } from '@/components/ui/text';
-import { ProgressBar } from '@/components/onboarding/ProgressBar';
-import { QuizOptionCard } from '@/components/onboarding/QuizOptionCard';
-import { useOnboardingQuiz, type DurationAnswer } from '@/contexts/OnboardingQuizContext';
+import { useState } from "react";
+import { useRouter } from "expo-router";
+import { View, Text as RNText, ScrollView } from "react-native";
+import { Image } from "expo-image";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { EaseView } from "react-native-ease";
+import { SpeechBubble } from "@/components/onboarding/SpeechBubble";
+import { usePostHog } from "posthog-react-native";
+import { useTranslation } from "react-i18next";
+import { ProgressBar } from "@/components/onboarding/ProgressBar";
+import { QuizOptionCard } from "@/components/onboarding/QuizOptionCard";
+import {
+  useOnboardingQuiz,
+  type DurationAnswer,
+} from "@/contexts/OnboardingQuizContext";
 
 const OPTIONS: { key: DurationAnswer; emoji: string }[] = [
-  { key: 'few_months', emoji: '📅' },
-  { key: 'more_than_year', emoji: '📆' },
-  { key: 'always', emoji: '♾️' },
+  { key: "few_months", emoji: "📅" },
+  { key: "more_than_year", emoji: "📆" },
+  { key: "always", emoji: "♾️" },
 ];
 
 export default function QuizQ2Screen() {
@@ -29,29 +31,43 @@ export default function QuizQ2Screen() {
   const handleSelect = (key: DurationAnswer) => {
     setSelected(key);
     setDuration(key);
-    posthog.capture('onboarding_quiz_answered', { question: 2, answer: key });
-    setTimeout(() => router.push('/onboarding/quiz-3'), 300);
+    posthog.capture("onboarding_quiz_answered", { question: 2, answer: key });
+    setTimeout(() => router.push("/onboarding/quiz-3"), 300);
   };
 
   return (
-    <View
-      className="flex-1 bg-background-0"
+    <ScrollView
+      className="flex-1 bg-bg-base"
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom + 16 }}
     >
-      <Box className="flex-1 p-6">
+      <View className="flex-1 px-6 py-6 relative">
         <ProgressBar step={2} totalSteps={8} />
 
-        <VStack space="md" className="mb-8">
-          <Text className="text-typography-500">{t('quiz.questionLabel')} 2/3</Text>
-          <Heading size="xl" className="text-typography-900">
-            {t('quiz.q2Title')}
-          </Heading>
-          <Text className="text-typography-600">
-            {t('quiz.q2Subtitle')}
-          </Text>
-        </VStack>
+        <View className="gap-4 mb-2">
+          <RNText className="font-body-regular text-body-sm text-content-tertiary">
+            {t("quiz.questionLabel")} 2/3
+          </RNText>
+          <RNText className="font-display text-display-lg text-content-primary">
+            {t("quiz.q2Title")}
+          </RNText>
+        </View>
 
-        <VStack space="md" className="flex-1">
+        <EaseView
+          className="items-center mb-0"
+          initialAnimate={{ opacity: 0, translateY: 30 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{ type: "timing", duration: 400, easing: "easeOut" }}
+          style={{ position: "relative" }}
+        >
+          <Image
+            source={require("@/assets/images/bubule-time.png")}
+            style={{ width: 400, height: 400, alignSelf: "center" }}
+            contentFit="contain"
+          />
+          <SpeechBubble text={t("quiz.q2Subtitle")} />
+        </EaseView>
+
+        <View className="gap-3 flex-1 bottom-14">
           {OPTIONS.map((option, index) => (
             <QuizOptionCard
               key={option.key}
@@ -62,8 +78,8 @@ export default function QuizQ2Screen() {
               index={index}
             />
           ))}
-        </VStack>
-      </Box>
-    </View>
+        </View>
+      </View>
+    </ScrollView>
   );
 }

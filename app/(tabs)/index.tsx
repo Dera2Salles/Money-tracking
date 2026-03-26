@@ -1,15 +1,9 @@
 import { useState, useMemo, useCallback } from 'react';
-import { View, ScrollView, Pressable, RefreshControl } from 'react-native';
+import { View, ScrollView, Pressable, RefreshControl, Text as RNText, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { Box } from '@/components/ui/box';
-import { VStack } from '@/components/ui/vstack';
-import { HStack } from '@/components/ui/hstack';
-import { Heading } from '@/components/ui/heading';
-import { Text } from '@/components/ui/text';
-import { Center } from '@/components/ui/center';
 import { useAccounts, useTransactions, useSettings, useTips, useWhatsNew, useGamification } from '@/hooks';
 import { TransactionCard } from '@/components/TransactionCard';
 import { PlanificationTransactionGroup } from '@/components/PlanificationTransactionGroup';
@@ -17,7 +11,10 @@ import { AddAccountModal } from '@/components/AddAccountModal';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { GamificationBar } from '@/components/GamificationBar';
 import { LevelUpModal } from '@/components/LevelUpModal';
+import { FadeIn, StaggerItem, PremiumCard, EmptyState, PrimaryButton } from '@/components/premium';
+import { cn } from '@/lib/utils';
 import { useTheme } from '@/contexts';
+import { useEffectiveColorScheme } from '@/components/ui/gluestack-ui-provider';
 import { useGamificationStore } from '@/stores/gamificationStore';
 import { usePostHog } from 'posthog-react-native';
 import type { TransactionWithCategory } from '@/hooks/useTransactions';
@@ -27,6 +24,7 @@ export default function DashboardScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
+  const isDark = useEffectiveColorScheme() === 'dark';
   const { accounts, formattedTotal, refresh: refreshAccounts, isLoading: accountsLoading, formatMoney, createAccount, canCreateAccount, customAccountsCount, maxCustomAccounts } = useAccounts();
   const { transactions, refresh: refreshTransactions, isFetching, deleteTransaction } = useTransactions();
   const { balanceHidden, toggleBalanceVisibility } = useSettings();
@@ -120,42 +118,51 @@ export default function DashboardScreen() {
   };
 
   return (
-    <View className="flex-1 bg-background-0" style={{ paddingTop: insets.top }}>
+    <View className="flex-1 bg-bg-base" style={{ paddingTop: insets.top }}>
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 16 }}
         refreshControl={<RefreshControl refreshing={isFetching || accountsLoading} onRefresh={handleRefresh} />}
       >
-        <VStack className="p-6" space="lg">
-          <HStack className="justify-between items-center">
-            <Heading size="xl" className="text-typography-900">{t('dashboard.title')}</Heading>
-            <Pressable onPress={() => router.push('/whats-new')} hitSlop={8} className="p-2">
-              <View>
-                <Ionicons name="notifications-outline" size={24} color={theme.colors.primary} />
-                {hasNew && (
-                  <View style={{ position: 'absolute', top: -2, right: -2, width: 10, height: 10, borderRadius: 5, backgroundColor: '#EF4444' }} />
-                )}
+        <View className="p-6 gap-6">
+          <FadeIn>
+            <View className="flex-row justify-between items-center">
+              <View className="flex-row items-center gap-0.5">
+                <Image source={require('@/assets/images/logo.png')} className="w-10 h-10" resizeMode="contain" />
+                <RNText className="font-display text-display-md text-content-primary font-bold">Mitsitsy</RNText>
               </View>
-            </Pressable>
-          </HStack>
+              <Pressable onPress={() => router.push('/whats-new')} hitSlop={8} className="p-2">
+                <View>
+                  <Ionicons name="notifications-outline" size={24} color={isDark ? '#A0A0B0' : '#6E6E7D'} />
+                  {hasNew && (
+                    <View style={{ position: 'absolute', top: -2, right: -2, width: 10, height: 10, borderRadius: 5, backgroundColor: '#EF4444' }} />
+                  )}
+                </View>
+              </Pressable>
+            </View>
+          </FadeIn>
 
-          <VStack>
-            <Box className="p-6 rounded-2xl" style={{ backgroundColor: theme.colors.primary }}>
-              <HStack className="justify-between items-start">
-                <VStack>
-                  <Text className="text-white text-sm mb-1">{t('dashboard.totalBalance')}</Text>
-                  <Heading size="2xl" className="text-white">{balanceHidden ? hiddenAmount : formattedTotal}</Heading>
-                </VStack>
-                <Pressable onPress={toggleBalanceVisibility} className="p-2">
-                  <Ionicons name={balanceHidden ? 'eye-off' : 'eye'} size={24} color="white" />
-                </Pressable>
-              </HStack>
-            </Box>
+          <View className="gap-2">
+            <FadeIn>
+              <PremiumCard className="p-6" style={{ backgroundColor: theme.colors.primary }}>
+                <View className="flex-row justify-between items-start">
+                  <View>
+                    <RNText className="text-white text-sm mb-1">{t('dashboard.totalBalance')}</RNText>
+                    <RNText className="font-display text-display-md text-white">{balanceHidden ? hiddenAmount : formattedTotal}</RNText>
+                  </View>
+                  <Pressable onPress={toggleBalanceVisibility} className="p-2">
+                    <Ionicons name={balanceHidden ? 'eye-off' : 'eye'} size={24} color="white" />
+                  </Pressable>
+                </View>
+              </PremiumCard>
+            </FadeIn>
             {showTip && currentTip && (
-              <HStack className="mt-2 p-3 rounded-xl items-center" style={{ backgroundColor: theme.colors.secondary + '20' }} space="sm">
-                <Ionicons name="bulb" size={16} color={theme.colors.secondary} />
-                <Text className="flex-1 text-xs" style={{ color: theme.colors.secondary }}>{t(currentTip)}</Text>
-              </HStack>
+              <FadeIn>
+                <View className="mt-2 p-3 rounded-xl flex-row items-center bg-bg-surface gap-2">
+                  <Ionicons name="bulb" size={16} color="#8B5CF6" />
+                  <RNText className="flex-1 text-xs text-brand">{t(currentTip)}</RNText>
+                </View>
+              </FadeIn>
             )}
             <GamificationBar
               currentStreak={gamification.currentStreak}
@@ -164,74 +171,64 @@ export default function DashboardScreen() {
               isLoading={gamification.isLoading}
               onPress={() => router.push({ pathname: '/history', params: { tab: 'achievements' } })}
             />
-          </VStack>
+          </View>
 
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
             {accounts.map((account) => (
-              <Box
-                key={account.id}
-                className="p-4 rounded-xl border"
-                style={{
-                  borderColor: getAccountColor(account.type) + '40',
-                  backgroundColor: getAccountColor(account.type) + '10',
-                  minWidth: 150,
-                }}
-              >
-                <HStack space="sm" className="items-center mb-2">
-                  <Ionicons name={account.icon as keyof typeof Ionicons.glyphMap} size={18} color={getAccountColor(account.type)} />
-                  <Text className="text-xs font-medium" style={{ color: getAccountColor(account.type) }} numberOfLines={1}>
+              <PremiumCard key={account.id} className="p-4 min-w-[150px]">
+                <View className="gap-2 mb-2 flex-row items-center gap-sm">
+                  <Ionicons name={account.icon as keyof typeof Ionicons.glyphMap} size={18} style={{ color: getAccountColor(account.type) }} />
+                  <RNText className="text-ui-sm font-ui flex-1" style={{ color: getAccountColor(account.type) }} numberOfLines={1}>
                     {getAccountName(account)}
-                  </Text>
-                </HStack>
-                <Text className="font-bold text-base" style={{ color: getAccountColor(account.type) }}>
+                  </RNText>
+                </View>
+                <RNText className="font-ui text-ui-lg" style={{ color: getAccountColor(account.type) }}>
                   {balanceHidden ? hiddenAmount : formatMoney(account.current_balance)}
-                </Text>
-              </Box>
+                </RNText>
+              </PremiumCard>
             ))}
             <Pressable onPress={() => setShowAddAccount(true)}>
-              <Box className="p-4 rounded-xl border-2 border-dashed border-outline-300 items-center justify-center" style={{ minWidth: 100, minHeight: 80 }}>
-                <Ionicons name="add-circle-outline" size={28} color={theme.colors.primary} />
-                <Text className="text-xs mt-1" style={{ color: theme.colors.primary }}>{t('dashboard.addAccount')}</Text>
-              </Box>
+              <View className="p-4 rounded-xl border-2 border-dashed border-content-disabled items-center justify-center bg-bg-raised" style={{ minWidth: 100, minHeight: 80 }}>
+                <Ionicons name="add-circle-outline" size={28} style={{ color: theme.colors.primary }} />
+                <RNText className="text-xs mt-1" style={{ color: theme.colors.primary }}>{t('dashboard.addAccount')}</RNText>
+              </View>
             </Pressable>
           </ScrollView>
 
-          <VStack space="md">
-            <Text className="text-typography-700 font-semibold">{t('dashboard.recentTransactions')}</Text>
+          <View className="gap-3">
+            <RNText className="font-ui text-ui-lg text-content-primary">{t('dashboard.recentTransactions')}</RNText>
             {recentItems.length === 0 ? (
-              <Center className="py-8 bg-background-0 rounded-xl border border-outline-100">
-                <Text className="text-4xl mb-2">📭</Text>
-                <Text className="text-typography-500 text-center text-sm">{t('dashboard.noTransactions')}</Text>
-              </Center>
+              <EmptyState icon="receipt-outline" title={t('dashboard.noTransactions')} image={require('@/assets/images/bubule-detente.png')} />
             ) : (
-              <VStack space="sm">
-                {recentItems.map((item) =>
+              <View className="gap-2">
+                {recentItems.map((item, i) =>
                   item._type === 'group' ? (
-                    <PlanificationTransactionGroup
-                      key={`group-${item.group.planification_id}`}
-                      group={item.group}
-                      onLongPress={() => setDeleteTarget(item.group.transactions[0])}
-                    />
+                    <StaggerItem key={`group-${item.group.planification_id}`} index={i}>
+                      <PlanificationTransactionGroup
+                        group={item.group}
+                        onLongPress={() => setDeleteTarget(item.group.transactions[0])}
+                      />
+                    </StaggerItem>
                   ) : (
-                    <TransactionCard
-                      key={item.transaction.id}
-                      transaction={item.transaction}
-                      onLongPress={() => setDeleteTarget(item.transaction)}
-                    />
+                    <StaggerItem key={item.transaction.id} index={i}>
+                      <TransactionCard
+                        transaction={item.transaction}
+                        onDelete={() => setDeleteTarget(item.transaction)}
+                      />
+                    </StaggerItem>
                   )
                 )}
                 {transactions.length > 5 && (
-                  <Pressable onPress={() => router.push('/history')} className="py-3 px-4 rounded-xl" style={{ backgroundColor: theme.colors.secondary }}>
-                    <HStack className="justify-center items-center" space="sm">
-                      <Text className="text-white font-semibold">{t('dashboard.viewMore')}</Text>
-                      <Ionicons name="arrow-forward" size={18} color="white" />
-                    </HStack>
-                  </Pressable>
+                  <PrimaryButton
+                    label={t('dashboard.viewMore')}
+                    onPress={() => router.push('/history')}
+                    className="flex-row justify-center items-center gap-2"
+                  />
                 )}
-              </VStack>
+              </View>
             )}
-          </VStack>
-        </VStack>
+          </View>
+        </View>
       </ScrollView>
 
       <ConfirmDialog
